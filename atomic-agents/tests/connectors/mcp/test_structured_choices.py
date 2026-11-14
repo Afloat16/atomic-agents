@@ -201,3 +201,35 @@ async def test_generated_tools_validate_and_preserve_structured_choices(valid_ou
             await tool_class().arun(params)
         assert isinstance(error.value.__cause__, ValidationError)
     session.call_tool.assert_awaited_once_with(name="choose", arguments=arguments)
+
+
+@pytest.mark.parametrize("keyword", ["const", "enum"])
+def test_structured_choices_retain_complete_pointer_and_cache_identity(keyword):
+    def preset(kind):
+        value = {"kind": kind}
+        return {
+            "type": "object",
+            "properties": {"kind": {"type": "string"}},
+            keyword: value if keyword == "const" else [value],
+        }
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "nested": {"$ref": "#/$defs/Box/properties/Preset"},
+            "legacy": {"$ref": "#/definitions/Preset"},
+        },
+        "required": ["nested", "legacy"],
+        "$defs": {"Box": {"properties": {"Preset": preset("nested")}}, "Preset": preset("decoy")},
+        "definitions": {"Preset": preset("legacy")},
+    }
+    model = SchemaTransformer.create_model_from_schema(schema, "PointerChoices", "choose", is_output_schema=True)
+    emitted = Draft202012Validator(model.model_json_schema())
+    valid = {"nested": {"kind": "nested"}, "legacy": {"kind": "legacy"}}
+    assert model.model_validate(valid).model_dump() == valid
+    assert emitted.is_valid(valid)
+    for field, kind in [("nested", "decoy"), ("nested", "legacy"), ("legacy", "nested")]:
+        invalid = {**valid, field: {"kind": kind}}
+        with pytest.raises(ValidationError):
+            model.model_validate(invalid)
+        assert not emitted.is_valid(invalid)
