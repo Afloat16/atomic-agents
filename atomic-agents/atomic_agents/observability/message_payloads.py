@@ -48,6 +48,18 @@ def _finite_json_float(value: str) -> float:
     return parsed
 
 
+def _reject_non_finite_constant(constant: str) -> object:
+    raise ValueError(f"non-finite JSON constant: {constant}")
+
+
+def _tool_call_arguments(arguments: str) -> object:
+    # Truncated or non-finite arguments are what Instructor rejected, so their raw text stays visible.
+    try:
+        return json.loads(arguments, parse_float=_finite_json_float, parse_constant=_reject_non_finite_constant)
+    except (ValueError, RecursionError):
+        return arguments
+
+
 def _tool_call(call: object) -> dict[str, object] | None:
     if _field(call, "type") != "function":
         return None
@@ -58,11 +70,7 @@ def _tool_call(call: object) -> dict[str, object] | None:
     part: dict[str, object] = {"type": "tool_call", "name": name}
     arguments = _field(function, "arguments")
     if isinstance(arguments, str):
-        try:
-            part["arguments"] = json.loads(arguments, parse_float=_finite_json_float, parse_constant=_finite_json_float)
-        except (ValueError, RecursionError):
-            # A rejected model answer is still useful when diagnosing an Instructor retry.
-            part["arguments"] = arguments
+        part["arguments"] = _tool_call_arguments(arguments)
     return _call_id(part, call, "id")
 
 
@@ -124,7 +132,10 @@ def _write_visible_messages(span: Span, value: object, direction: str, config: T
         if not messages:
             return
         serialized = json.dumps(messages, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+        key = f"gen_ai.{direction}.messages"
         if len(serialized) <= config.max_attribute_length:
-            span.set_attribute(f"gen_ai.{direction}.messages", serialized)
+            span.set_attribute(key, serialized)
+        else:
+            span.set_attribute(key + ".original_length", len(serialized))
     except Exception:
         return

@@ -91,6 +91,19 @@ def test_unparsed_arguments_remain_raw_without_losing_other_parts(direction, arg
 
 
 @pytest.mark.parametrize("direction", ["input", "output"])
+def test_arguments_exceeding_decoder_depth_remain_raw(direction):
+    # CPython's C JSON decoder can use a different limit from Python frames.
+    depth = 10_000
+    arguments = "[" * depth + "0" + "]" * depth
+    with pytest.raises(RecursionError):
+        json.loads(arguments)
+
+    result = capture(transcript(arguments, direction), direction, max_attribute_length=len(arguments) * 2 + 1000)
+
+    assert json.loads(result[f"gen_ai.{direction}.messages"]) == expected_messages(arguments)
+
+
+@pytest.mark.parametrize("direction", ["input", "output"])
 @pytest.mark.parametrize(
     "arguments,expected",
     [
@@ -113,7 +126,11 @@ def test_raw_arguments_obey_complete_serialized_attribute_limit(direction, delta
     arguments = '{"city":"東京",\n"quote":"unfinished'
     expected = json.dumps(expected_messages(arguments), ensure_ascii=False, separators=(",", ":"), allow_nan=False)
     result = capture(transcript(arguments, direction), direction, max_attribute_length=len(expected) + delta)
-    assert result == ({} if delta < 0 else {f"gen_ai.{direction}.messages": expected})
+    assert result == (
+        {f"gen_ai.{direction}.messages.original_length": len(expected)}
+        if delta < 0
+        else {f"gen_ai.{direction}.messages": expected}
+    )
 
 
 class Question(BaseIOSchema):
