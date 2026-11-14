@@ -38,6 +38,13 @@ class Deep:
             text: str
 
 
+class NonSchema:
+    value = object()
+
+    class Content:
+        pass
+
+
 @pytest.mark.parametrize("schema", [Content, First.Content, Second.Content, Deep.Inner.Content])
 def test_round_trip_preserves_exact_schema_class(schema):
     original = ChatHistory(max_messages=4)
@@ -114,3 +121,16 @@ def test_schema_module_dependency_failure_is_not_hidden(tmp_path, monkeypatch):
     with pytest.raises(ModuleNotFoundError) as error:
         ChatHistory._get_class_from_string("broken_history_fixture.Component.Message")
     assert error.value.name == "missing_history_dependency"
+
+
+@pytest.mark.parametrize("name", ["NonSchema.value", "NonSchema.Content"])
+def test_nested_non_schema_objects_cannot_replace_existing_history(name):
+    history = ChatHistory()
+    history.add_message("user", Content(text="keep me"))
+    original = history.dump()
+    broken = json.loads(original)
+    broken["history"][0]["content"]["class_name"] = f"{__name__}.{name}"
+
+    with pytest.raises(ValueError, match="is not a BaseIOSchema subclass"):
+        history.load(json.dumps(broken))
+    assert history.dump() == original
