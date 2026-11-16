@@ -249,5 +249,123 @@
         "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43887290597"
       }
     ]
+  },
+  "batch4": {
+    "n": 4,
+    "repo": "Eigenwise/atomic-agents",
+    "title": "Pass prediction fields between DSPy pipeline stages",
+    "branch": "fix/dspy-pipeline-prediction-fields-20261116",
+    "head": "9dbab7db7d77a1659049ca68abe2624ecdb14b1a",
+    "tree": "8ba937624a2fc45e7870768a61c5094775a11a50",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "e957136d920632b4d01322cf27bf54d5d03aaded",
+    "validation_tree": "35019b07d421e9d62dea89248900f0e894443cc4",
+    "validation_branch": "validation/dspy-pipeline-fields-20261116",
+    "status": "published",
+    "local_tests": {
+      "before": "7 failed, 2 passed",
+      "after_3_0_4": "9 passed",
+      "after_2_5_0": "9 passed",
+      "full_core": "1373 passed, 14 skipped",
+      "black": "254 files unchanged",
+      "flake8": "0"
+    },
+    "dedupe": {
+      "upstream_pr_heads": 298,
+      "fork_heads": 122,
+      "source_revisions": 3,
+      "all_versions_use_dir_prediction": true,
+      "equivalent_fixes": 0
+    },
+    "validation_previous_head": "f33595497ee76b7d26d3c583ae26565931150c00",
+    "initial_validation": {
+      "run": 43888774220,
+      "quality": "success",
+      "lowest": "success",
+      "fresh_install": "success",
+      "dspy_3_0_4": "success",
+      "dspy_2_5_0": "dependency resolution failed: historical release is published as dspy-ai, not dspy"
+    },
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43889137569",
+    "validation_jobs": [
+      {
+        "id": 133375239549,
+        "name": "Native DSPy 2.5.0 pipeline before and after",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133375239801,
+        "name": "Native DSPy 3.0.4 pipeline before and after",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133375239898,
+        "name": "quality",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133375239952,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133375240174,
+        "name": "Fresh install imports every subpackage",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "body": "## Problem\n\n`DSPyAtomicPipeline` uses `dir(prediction)` to collect the next stage's inputs. DSPy keeps prediction fields in its mapping, so those fields are absent from `dir()`. The current code forwards the internal `completions` property instead, and an ordinary two-stage pipeline fails with missing inputs or an unexpected `completions` argument.\n\n## Change\n\nBuild the next input dictionary from `Prediction.items()`. This uses DSPy's public field interface, preserves the actual values and their types, and excludes internal `dspy_` fields. Each stage still receives the immediately preceding prediction, and the returned result mapping retains the original prediction objects.\n\n## Validation\n\n- **DSPy 3.0.4** (the lockfile version) and the historical **DSPy 2.5.0** distribution (`dspy-ai`): unchanged source fails **7** regressions and passes **2** controls; all **9** pass with the fix on both versions.\n- Tests exercise real `dspy.Module` and `Prediction` objects, two- and three-stage handoffs, zero/false/null/empty values, nested Pydantic values, field names that collide with object attributes, and empty/single-stage controls.\n- A two-stage `DSPyAtomicModule` test uses native predictors and DSPy's deterministic test LM, verifying that the first answer reaches the second model request. No external model call is made.\n- Full core suite: **1,373 passed, 14 skipped** with both locked and lowest direct dependencies. Black, Flake8, constructor typing and fresh-install checks pass.\n\nThe [five-job validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43889137569) records the native before/after tests and the repository's existing checks.",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/dspy-pipeline-prediction-fields-20261116?expand=1&title=Pass%20prediction%20fields%20between%20DSPy%20pipeline%20stages&body=%23%23%20Problem%0A%0A%60DSPyAtomicPipeline%60%20uses%20%60dir(prediction)%60%20to%20collect%20the%20next%20stage's%20inputs.%20DSPy%20keeps%20prediction%20fields%20in%20its%20mapping%2C%20so%20those%20fields%20are%20absent%20from%20%60dir()%60.%20The%20current%20code%20forwards%20the%20internal%20%60completions%60%20property%20instead%2C%20and%20an%20ordinary%20two-stage%20pipeline%20fails%20with%20missing%20inputs%20or%20an%20unexpected%20%60completions%60%20argument.%0A%0A%23%23%20Change%0A%0ABuild%20the%20next%20input%20dictionary%20from%20%60Prediction.items()%60.%20This%20uses%20DSPy's%20public%20field%20interface%2C%20preserves%20the%20actual%20values%20and%20their%20types%2C%20and%20excludes%20internal%20%60dspy_%60%20fields.%20Each%20stage%20still%20receives%20the%20immediately%20preceding%20prediction%2C%20and%20the%20returned%20result%20mapping%20retains%20the%20original%20prediction%20objects.%0A%0A%23%23%20Validation%0A%0A-%20**DSPy%203.0.4**%20(the%20lockfile%20version)%20and%20the%20historical%20**DSPy%202.5.0**%20distribution%20(%60dspy-ai%60)%3A%20unchanged%20source%20fails%20**7**%20regressions%20and%20passes%20**2**%20controls%3B%20all%20**9**%20pass%20with%20the%20fix%20on%20both%20versions.%0A-%20Tests%20exercise%20real%20%60dspy.Module%60%20and%20%60Prediction%60%20objects%2C%20two-%20and%20three-stage%20handoffs%2C%20zero%2Ffalse%2Fnull%2Fempty%20values%2C%20nested%20Pydantic%20values%2C%20field%20names%20that%20collide%20with%20object%20attributes%2C%20and%20empty%2Fsingle-stage%20controls.%0A-%20A%20two-stage%20%60DSPyAtomicModule%60%20test%20uses%20native%20predictors%20and%20DSPy's%20deterministic%20test%20LM%2C%20verifying%20that%20the%20first%20answer%20reaches%20the%20second%20model%20request.%20No%20external%20model%20call%20is%20made.%0A-%20Full%20core%20suite%3A%20**1%2C373%20passed%2C%2014%20skipped**%20with%20both%20locked%20and%20lowest%20direct%20dependencies.%20Black%2C%20Flake8%2C%20constructor%20typing%20and%20fresh-install%20checks%20pass.%0A%0AThe%20%5Bfive-job%20validation%20run%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43889137569)%20records%20the%20native%20before%2Fafter%20tests%20and%20the%20repository's%20existing%20checks.",
+    "number": 444,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/444",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false,
+    "official_ci": [
+      {
+        "id": 43889624510,
+        "name": "Code Quality & Tests",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 909,
+        "jobs_url": "https://api.github.com/repos/Eigenwise/atomic-agents/actions/runs/43889624510/jobs",
+        "logs_url": "https://api.github.com/repos/Eigenwise/atomic-agents/actions/runs/43889624510/logs",
+        "workflow_id": 126392280,
+        "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43889624510"
+      }
+    ]
+  },
+  "batch5": {
+    "n": 5,
+    "repo": "Eigenwise/atomic-agents",
+    "title": "Preserve nullable and union fields in DSPy signatures",
+    "branch": "fix/dspy-nullable-union-types-20261116",
+    "head": "995b7b0a6a2e81ba4ee0c73cc0ce6f7dd4ef1095",
+    "tree": "eae124a88a551f39064ba62ad1d18f70f9e9621e",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "5608c24c15e645b21a810125970b228735acb442",
+    "validation_tree": "7bc1eb4f01a0e8913f8407927dc33b3429398884",
+    "validation_branch": "validation/dspy-nullable-unions-20261116",
+    "status": "validating",
+    "local_tests": {
+      "before_3_0_4": "15 failed, 2 passed",
+      "before_legacy_2_5_0": "16 failed, 1 passed",
+      "after_3_0_4": "17 passed",
+      "after_legacy_2_5_0": "17 passed",
+      "black": "254 files unchanged",
+      "flake8": "0"
+    },
+    "dedupe": {
+      "upstream_pr_heads": 298,
+      "fork_heads": 122,
+      "source_revisions": 3,
+      "distinct_converter_implementations": 1,
+      "equivalent_fixes": 0
+    }
   }
 }
