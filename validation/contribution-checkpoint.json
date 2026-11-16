@@ -77,6 +77,96 @@
     "state": "open",
     "merged": false,
     "maintainer_can_modify": false,
-    "official_ci": []
+    "official_ci": [
+      {
+        "id": 43884053228,
+        "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43884053228",
+        "name": "Code Quality & Tests",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "batch2": {
+    "n": 2,
+    "repo": "Eigenwise/atomic-agents",
+    "title": "Preserve article headings and attribution during webpage extraction",
+    "branch": "fix/scraper-section-headings-20261116",
+    "head": "86d283f65df1ace41cf3b87cd0338e3f50e20a10",
+    "tree": "133d01b64851019ae42d5cab6377519dd675f9ff",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "195969035ea1ed834089430943deab5dd4a8aec3",
+    "validation_tree": "4a8c8e1cf16d93b2773830b010648aa3378155f9",
+    "status": "published",
+    "local_tests": {
+      "before": "8 failed, 4 passed",
+      "after_complete_scraper_suite": "29 passed",
+      "full_core": "1373 passed, 14 skipped",
+      "black": "254 files unchanged",
+      "flake8": "0",
+      "live_smoke": {
+        "url": "https://wordpress.org/news/2024/11/rollins/",
+        "status": 200,
+        "before_heading_count": 16,
+        "after_heading_count": 17,
+        "recovered": "article heading and publication byline",
+        "before_markdown_chars": 60445,
+        "after_markdown_chars": 60667
+      }
+    },
+    "dedupe": {
+      "pr_heads": 298,
+      "fork_heads": 122,
+      "source_revisions": 26,
+      "distinct_extractors": 1,
+      "equivalent_fixes": 0
+    },
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43885356306",
+    "validation_jobs": [
+      {
+        "id": 133361895103,
+        "name": "Fresh install imports every subpackage",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133361895562,
+        "name": "Real parser regressions before and after",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133361895660,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133361895818,
+        "name": "quality",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "body": "## Problem\n\nBoth webpage scrapers delete every `header` and `footer` before selecting the main content. These elements also belong inside articles and sections, where they hold the article heading, author, publication date, or attribution. That text disappears from the Markdown returned to the agent.\n\nThe HTML standard describes these [section-scoped headers](https://html.spec.whatwg.org/multipage/sections.html#the-header-element) and [footers](https://html.spec.whatwg.org/multipage/sections.html#the-footer-element).\n\n## Change\n\nPreserve the contents of headers and footers within `main`, `article`, or `section` in both the Forge tool and the deep-research copy. Unwrap their containers so an `id=\"content\"` or `class=\"main\"` on a header/footer cannot become the entire main-content selection. Continue removing site-level headers/footers, navigation, scripts, and styles.\n\n## Validation\n\n- New regression cases on unchanged main: **8 failed, 4 passed**. All **12 pass** with the fix; the complete scraper suite passes **29 tests**.\n- The tests exercise both implementations through real BeautifulSoup, readability, and Markdown conversion, with deterministic HTML fixtures supplied at the HTTP boundary. They cover article/main/section scopes, nested headings, attribution, misleading header/footer IDs/classes, and site-chrome controls.\n- Live smoke test: fetched the [WordPress 6.7 release article](https://wordpress.org/news/2024/11/rollins/) successfully (HTTP 200) and processed the same response before and after the fix. The article heading and publication byline are recovered; Markdown headings increase from 16 to 17.\n- [Validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43885356306): all four jobs pass, including the original-source failure check, complete scraper suite, clean wheel installation, and repository quality matrix. Locked and lowest-direct-dependency environments each pass **1,373 core tests, with 14 existing skips**.\n- Repository-wide Black, Flake8, the AgentConfig Pyright check, and `git diff --check` pass.\n",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/scraper-section-headings-20261116?expand=1&title=Preserve%20article%20headings%20and%20attribution%20during%20webpage%20extraction&body=%23%23%20Problem%0A%0ABoth%20webpage%20scrapers%20delete%20every%20%60header%60%20and%20%60footer%60%20before%20selecting%20the%20main%20content.%20These%20elements%20also%20belong%20inside%20articles%20and%20sections%2C%20where%20they%20hold%20the%20article%20heading%2C%20author%2C%20publication%20date%2C%20or%20attribution.%20That%20text%20disappears%20from%20the%20Markdown%20returned%20to%20the%20agent.%0A%0AThe%20HTML%20standard%20describes%20these%20%5Bsection-scoped%20headers%5D(https%3A%2F%2Fhtml.spec.whatwg.org%2Fmultipage%2Fsections.html%23the-header-element)%20and%20%5Bfooters%5D(https%3A%2F%2Fhtml.spec.whatwg.org%2Fmultipage%2Fsections.html%23the-footer-element).%0A%0A%23%23%20Change%0A%0APreserve%20the%20contents%20of%20headers%20and%20footers%20within%20%60main%60%2C%20%60article%60%2C%20or%20%60section%60%20in%20both%20the%20Forge%20tool%20and%20the%20deep-research%20copy.%20Unwrap%20their%20containers%20so%20an%20%60id%3D%22content%22%60%20or%20%60class%3D%22main%22%60%20on%20a%20header%2Ffooter%20cannot%20become%20the%20entire%20main-content%20selection.%20Continue%20removing%20site-level%20headers%2Ffooters%2C%20navigation%2C%20scripts%2C%20and%20styles.%0A%0A%23%23%20Validation%0A%0A-%20New%20regression%20cases%20on%20unchanged%20main%3A%20**8%20failed%2C%204%20passed**.%20All%20**12%20pass**%20with%20the%20fix%3B%20the%20complete%20scraper%20suite%20passes%20**29%20tests**.%0A-%20The%20tests%20exercise%20both%20implementations%20through%20real%20BeautifulSoup%2C%20readability%2C%20and%20Markdown%20conversion%2C%20with%20deterministic%20HTML%20fixtures%20supplied%20at%20the%20HTTP%20boundary.%20They%20cover%20article%2Fmain%2Fsection%20scopes%2C%20nested%20headings%2C%20attribution%2C%20misleading%20header%2Ffooter%20IDs%2Fclasses%2C%20and%20site-chrome%20controls.%0A-%20Live%20smoke%20test%3A%20fetched%20the%20%5BWordPress%206.7%20release%20article%5D(https%3A%2F%2Fwordpress.org%2Fnews%2F2024%2F11%2Frollins%2F)%20successfully%20(HTTP%20200)%20and%20processed%20the%20same%20response%20before%20and%20after%20the%20fix.%20The%20article%20heading%20and%20publication%20byline%20are%20recovered%3B%20Markdown%20headings%20increase%20from%2016%20to%2017.%0A-%20%5BValidation%20run%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43885356306)%3A%20all%20four%20jobs%20pass%2C%20including%20the%20original-source%20failure%20check%2C%20complete%20scraper%20suite%2C%20clean%20wheel%20installation%2C%20and%20repository%20quality%20matrix.%20Locked%20and%20lowest-direct-dependency%20environments%20each%20pass%20**1%2C373%20core%20tests%2C%20with%2014%20existing%20skips**.%0A-%20Repository-wide%20Black%2C%20Flake8%2C%20the%20AgentConfig%20Pyright%20check%2C%20and%20%60git%20diff%20--check%60%20pass.%0A",
+    "number": 442,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/442",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false,
+    "official_ci": [
+      {
+        "id": 43885950856,
+        "name": "Code Quality & Tests",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 907,
+        "jobs_url": "https://api.github.com/repos/Eigenwise/atomic-agents/actions/runs/43885950856/jobs",
+        "logs_url": "https://api.github.com/repos/Eigenwise/atomic-agents/actions/runs/43885950856/logs",
+        "workflow_id": 126392280,
+        "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43885950856"
+      }
+    ]
   }
 }
