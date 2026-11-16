@@ -1351,6 +1351,130 @@
       }
     ],
     "full_suite": "1382 passed, 14 skipped (core plus 9 new example cases)",
+    "head_body_verified": true,
+    "official_ci": {
+      "id": 43919078569,
+      "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43919078569",
+      "conclusion": "success"
+    }
+  },
+  "batch20": {
+    "batch": 20,
+    "repository": "Eigenwise/atomic-agents",
+    "status": "published",
+    "base": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "branch": "fix/nonrecording-payloads-20261116",
+    "validation_branch": "validation/nonrecording-payloads-20261116",
+    "title": "Skip payload serialization for nonrecording spans",
+    "dedupe": "audit/atomic_nonrecording_history.json.gz",
+    "dedupe_commits": 63,
+    "dedupe_full_source_versions": 29,
+    "local_tests": {
+      "before": "13 failed, 12 passed",
+      "after": "25 passed",
+      "full_suite": "1398 passed, 14 skipped",
+      "black": "254 files unchanged",
+      "flake8": "passed",
+      "changed_entry_point_coverage": "100% on both added guards"
+    },
+    "benchmark": {
+      "before": {
+        "payload_bytes": 1000000,
+        "calls_per_trial": 100,
+        "trials": [
+          {
+            "seconds": 0.2723677680005494,
+            "serializations": 200
+          },
+          {
+            "seconds": 0.27008714100156794,
+            "serializations": 200
+          },
+          {
+            "seconds": 0.24614110699985758,
+            "serializations": 200
+          },
+          {
+            "seconds": 0.21260490300119272,
+            "serializations": 200
+          },
+          {
+            "seconds": 0.5458383280019916,
+            "serializations": 200
+          }
+        ],
+        "median_run_seconds": 0.27008714100156794,
+        "scope": "full instrumented Echo.run; native SDK ALWAYS_OFF; identity-preserved result"
+      },
+      "after": {
+        "payload_bytes": 1000000,
+        "calls_per_trial": 100,
+        "trials": [
+          {
+            "seconds": 0.004087602999788942,
+            "serializations": 0
+          },
+          {
+            "seconds": 0.0071951589998207055,
+            "serializations": 0
+          },
+          {
+            "seconds": 0.008634392997919349,
+            "serializations": 0
+          },
+          {
+            "seconds": 0.007962730000144802,
+            "serializations": 0
+          },
+          {
+            "seconds": 0.010093598000821657,
+            "serializations": 0
+          }
+        ],
+        "median_run_seconds": 0.007962730000144802,
+        "scope": "full instrumented Echo.run; native SDK ALWAYS_OFF; identity-preserved result"
+      }
+    },
+    "difference_from_456": "SDK sampling and API-only NoOp spans stay nonrecording without the suppression context. This change skips only payload work and preserves span creation and propagation; 456 instead honors a separate suppression context flag.",
+    "validation_head": "2276f7f695bdd73cc80fdf3b295e52d13cb994ff",
+    "validation_tree": "1ab7e3fbdd7cdc6a7d8f458953e99d29e4a075f7",
+    "head": "d44a6131d5095f8806b9249eb5adee80b29bbb1c",
+    "tree": "b658711df785bf04e216825089d86d74c0eb94f3",
+    "number": 460,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/460",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false,
+    "body": "## What changes\n\nNonrecording spans currently serialize structured tool/agent inputs and outputs and traverse opt-in chat messages before the OpenTelemetry API discards those attributes. This occurs with a real SDK `ALWAYS_OFF` sampler and with an API-only `NoOpTracerProvider`, even when instrumentation suppression is not enabled.\n\nCheck `span.is_recording()` at the two payload entry points before doing that work. Span creation, sampling inputs, context propagation, tool results and exception behavior stay intact. `RECORD_ONLY` spans still receive their payloads even though their sampled flag is unset.\n\n## Validation\n\n[Native SDK comparisons and full validation](https://github.com/Afloat16/atomic-agents/actions/runs/43920152252):\n\n- OpenTelemetry SDK **1.30.0** and **1.38.0**: the 25 new cases go from **13 failed / 12 passed** on `main` to **25 passed**. They cover synchronous/asynchronous calls and exceptions, `ALWAYS_OFF`, `ALWAYS_ON`, `RECORD_ONLY`, API-only no-op spans, input/output chat capture, and valid parent/child context propagation.\n- Complete core suite on both locked and lowest allowed direct dependencies: **1,398 passed, 14 skipped**.\n- Black, Flake8, constructor typing and fresh wheel/import checks passed. The new guard paths are covered.\n\nThe same validation runs also measure complete instrumented `Echo.run` calls with a **1,000,000-byte** text payload, an unchanged return object, **100 calls per trial**, five warmup calls and five measured trials. These measurements isolate tracing overhead in a trivial tool:\n\n| Native SDK | Median 100-call time before | After | Payload serializations before → after |\n| --- | ---: | ---: | ---: |\n| 1.30.0 | 95.45 ms | 1.08 ms | 200 → 0 |\n| 1.38.0 | 103.79 ms | 2.02 ms | 200 → 0 |\n\nThe two `is_recording()` guards are the only production changes.",
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43920152252",
+    "validation_jobs": [
+      {
+        "id": 133484941868,
+        "name": "quality",
+        "conclusion": "success"
+      },
+      {
+        "id": 133484942381,
+        "name": "Native sampling (1.30.0)",
+        "conclusion": "success"
+      },
+      {
+        "id": 133484942459,
+        "name": "Native sampling (1.38.0)",
+        "conclusion": "success"
+      },
+      {
+        "id": 133484942607,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "conclusion": "success"
+      },
+      {
+        "id": 133484942687,
+        "name": "Fresh install imports every subpackage",
+        "conclusion": "success"
+      }
+    ],
+    "full_suite": "1398 passed, 14 skipped (locked and lowest direct dependency sets)",
     "head_body_verified": true
   }
 }
