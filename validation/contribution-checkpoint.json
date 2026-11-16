@@ -168,5 +168,86 @@
         "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43885950856"
       }
     ]
+  },
+  "batch3": {
+    "n": 3,
+    "repo": "Eigenwise/atomic-agents",
+    "title": "Preserve literal metadata field names in Qdrant filters",
+    "branch": "fix/qdrant-literal-metadata-keys-20261116",
+    "head": "fd28bbf1b4320a570a63b0851e1644c4617ba04e",
+    "tree": "015264ef646ddc90fe7abcd291709752c956eab1",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "1c37eecfd2a30f952b144e7a7d05736816cf46fe",
+    "validation_tree": "12c4801ba466e3b47e7ae4a9c25260de287310c5",
+    "validation_branch": "validation/qdrant-literal-metadata-keys-20261116",
+    "status": "published",
+    "local_tests": {
+      "before": "6 failed, 7 passed",
+      "after_1_16_0": "13 passed",
+      "after_1_15_1": "13 passed",
+      "full_core": "1373 passed, 14 skipped",
+      "black": "254 files unchanged",
+      "flake8": "0"
+    },
+    "dedupe": {
+      "upstream_pr_heads": 298,
+      "fork_heads": 122,
+      "source_revisions": 5,
+      "equivalent_fixes": 0
+    },
+    "server_grammar": "https://github.com/qdrant/qdrant/blob/222b2e44ab1c3f17e8246396ead6558e45041df7/lib/segment/src/json_path/parse.rs",
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43886991203",
+    "validation_jobs": [
+      {
+        "id": 133367713728,
+        "name": "quality",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133367714145,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133367714168,
+        "name": "Native Qdrant 1.16.0 regressions before and after",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133367714285,
+        "name": "Fresh install imports every subpackage",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133367714479,
+        "name": "Native Qdrant 1.15.1 regressions before and after",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "body": "## Problem\n\nThe RAG chatbot stores metadata as a dictionary, but its Qdrant adapter inserts each metadata key directly into a JSON filter path. A stored key such as `file.name` is then interpreted as two nested keys, and `tags[0]` is interpreted as an array access. Filters can therefore return no documents even immediately after successfully inserting the matching document. Spaces and empty keys can also cause invalid-path errors.\n\n## Changes\n\nQuote the metadata key as one Qdrant path segment, preserving its original spelling in storage and returned results. Keep multiple predicates combined with AND and leave unfiltered queries unchanged.\n\nReject double quotes and backslashes with a clear `ValueError`: Qdrant's [quoted-key grammar](https://github.com/qdrant/qdrant/blob/222b2e44ab1c3f17e8246396ead6558e45041df7/lib/segment/src/json_path/parse.rs) does not provide an escape syntax for these characters. This avoids turning a key into additional path segments.\n\n## Validation\n\nThe regression tests create actual local Qdrant collections, insert documents through `QdrantDBService`, and query through its public API. The OpenAI SDK uses an HTTPX transport returning deterministic embedding responses; no external model is called.\n\n- **Qdrant client 1.15.1 and 1.16.0:** unchanged source fails **6** regressions and passes **7** controls; the fix passes all **13** on each version.\n- Coverage includes dots, brackets, spaces, Unicode and empty keys, multi-predicate filtering, unchanged stored metadata, ordinary keys, unfiltered queries and unrepresentable-key rejection.\n- Full core suite: **1,373 passed, 14 skipped** with both the locked and lowest direct dependencies.\n- Repository Black and Flake8 checks, constructor typing and fresh-install checks pass.\n\nThe [five-job validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43886991203) retains the before/after executions and the repository's existing quality, minimum-dependency and fresh-install jobs.",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/qdrant-literal-metadata-keys-20261116?expand=1&title=Preserve%20literal%20metadata%20field%20names%20in%20Qdrant%20filters&body=%23%23%20Problem%0A%0AThe%20RAG%20chatbot%20stores%20metadata%20as%20a%20dictionary%2C%20but%20its%20Qdrant%20adapter%20inserts%20each%20metadata%20key%20directly%20into%20a%20JSON%20filter%20path.%20A%20stored%20key%20such%20as%20%60file.name%60%20is%20then%20interpreted%20as%20two%20nested%20keys%2C%20and%20%60tags%5B0%5D%60%20is%20interpreted%20as%20an%20array%20access.%20Filters%20can%20therefore%20return%20no%20documents%20even%20immediately%20after%20successfully%20inserting%20the%20matching%20document.%20Spaces%20and%20empty%20keys%20can%20also%20cause%20invalid-path%20errors.%0A%0A%23%23%20Changes%0A%0AQuote%20the%20metadata%20key%20as%20one%20Qdrant%20path%20segment%2C%20preserving%20its%20original%20spelling%20in%20storage%20and%20returned%20results.%20Keep%20multiple%20predicates%20combined%20with%20AND%20and%20leave%20unfiltered%20queries%20unchanged.%0A%0AReject%20double%20quotes%20and%20backslashes%20with%20a%20clear%20%60ValueError%60%3A%20Qdrant's%20%5Bquoted-key%20grammar%5D(https%3A%2F%2Fgithub.com%2Fqdrant%2Fqdrant%2Fblob%2F222b2e44ab1c3f17e8246396ead6558e45041df7%2Flib%2Fsegment%2Fsrc%2Fjson_path%2Fparse.rs)%20does%20not%20provide%20an%20escape%20syntax%20for%20these%20characters.%20This%20avoids%20turning%20a%20key%20into%20additional%20path%20segments.%0A%0A%23%23%20Validation%0A%0AThe%20regression%20tests%20create%20actual%20local%20Qdrant%20collections%2C%20insert%20documents%20through%20%60QdrantDBService%60%2C%20and%20query%20through%20its%20public%20API.%20The%20OpenAI%20SDK%20uses%20an%20HTTPX%20transport%20returning%20deterministic%20embedding%20responses%3B%20no%20external%20model%20is%20called.%0A%0A-%20**Qdrant%20client%201.15.1%20and%201.16.0%3A**%20unchanged%20source%20fails%20**6**%20regressions%20and%20passes%20**7**%20controls%3B%20the%20fix%20passes%20all%20**13**%20on%20each%20version.%0A-%20Coverage%20includes%20dots%2C%20brackets%2C%20spaces%2C%20Unicode%20and%20empty%20keys%2C%20multi-predicate%20filtering%2C%20unchanged%20stored%20metadata%2C%20ordinary%20keys%2C%20unfiltered%20queries%20and%20unrepresentable-key%20rejection.%0A-%20Full%20core%20suite%3A%20**1%2C373%20passed%2C%2014%20skipped**%20with%20both%20the%20locked%20and%20lowest%20direct%20dependencies.%0A-%20Repository%20Black%20and%20Flake8%20checks%2C%20constructor%20typing%20and%20fresh-install%20checks%20pass.%0A%0AThe%20%5Bfive-job%20validation%20run%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43886991203)%20retains%20the%20before%2Fafter%20executions%20and%20the%20repository's%20existing%20quality%2C%20minimum-dependency%20and%20fresh-install%20jobs.",
+    "number": 443,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/443",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false,
+    "official_ci": [
+      {
+        "id": 43887290597,
+        "name": "Code Quality & Tests",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 908,
+        "jobs_url": "https://api.github.com/repos/Eigenwise/atomic-agents/actions/runs/43887290597/jobs",
+        "logs_url": "https://api.github.com/repos/Eigenwise/atomic-agents/actions/runs/43887290597/logs",
+        "workflow_id": 126392280,
+        "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43887290597"
+      }
+    ]
   }
 }
