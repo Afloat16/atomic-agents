@@ -1182,5 +1182,49 @@
       "conclusion": "success",
       "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43909383365"
     }
+  },
+  "batch17": {
+    "number": 457,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/457",
+    "title": "Resolve literal names in MCP resource URI templates",
+    "body": "## Problem\n\nThe MCP resource discovery path accepts literal URI-template variables such as `{item.name}`, `{0}`, and `{01}`, but the generated resource uses Python's `str.format` to expand them. Python interprets these as attribute access or positional arguments. Expansion then falls back to the original template, so a valid resource input reaches the MCP server with an unexpanded address and fails to read the resource.\n\n## Change\n\nLook up each variable name literally when formatting resource URIs, for both fresh and persistent sessions. This extends the existing simple-template subset to valid dotted and numeric variable names; it does not add URI-template operators or change value escaping.\n\nThis is outside the intentionally limited expansion scope documented in #345 and is separate from the argument-encoding changes in #373, which retain Python field-name lookup. RFC 6570 section 2.3 permits these variable names: https://www.rfc-editor.org/rfc/rfc6570#section-2.3\n\nTwo existing assertions characterized the old dotted-name fallback. They now assert successful expansion, and separate malformed-template cases retain coverage for the existing fallback behavior.\n\n## Validation\n\n- Native MCP ClientSession and low-level Server communicate through JSON-round-tripped in-memory transports. Real resource listing, generated input validation, resource reads, and session reuse are covered.\n- MCP SDK 1.8.0 and 1.22.0: **8 failed / 6 passed on unchanged main → 14 passed with the change**. Controls cover ordinary names, repeated variables, encoded names and literal URI paths, plus malformed-template fallback for both session modes.\n- Full core suite with locked dependencies and minimum direct dependencies: **1,385 passed, 14 skipped** in each environment.\n- Black, Flake8, constructor typing, and clean-wheel import checks passed.\n\nValidation run: https://github.com/Afloat16/atomic-agents/actions/runs/43911685101",
+    "head": "075047f845a6270d02ef51728f4c5412d3eb9866",
+    "tree": "a84d888c5c0f8917e1392de78bd2fb2e899a5523",
+    "state": "open",
+    "merged": false,
+    "status": "published",
+    "maintainer_can_modify": false,
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43911685101",
+    "validation_jobs": [
+      {
+        "id": 133454962494,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "conclusion": "success"
+      },
+      {
+        "id": 133454962663,
+        "name": "Native MCP SDK 1.22.0",
+        "conclusion": "success"
+      },
+      {
+        "id": 133454962935,
+        "name": "quality",
+        "conclusion": "success"
+      },
+      {
+        "id": 133454962988,
+        "name": "Fresh install imports every subpackage",
+        "conclusion": "success"
+      },
+      {
+        "id": 133454963128,
+        "name": "Native MCP SDK 1.8.0",
+        "conclusion": "success"
+      }
+    ],
+    "full_suite": "1385 passed, 14 skipped",
+    "head_body_verified": true,
+    "validation_head": "53b2a05f56dbcb2e83a2f8b8a8aeead03ad41a02",
+    "validation_tree": "5770f6c354fefcbee793ec32b4dc30dbe67972c7"
   }
 }
