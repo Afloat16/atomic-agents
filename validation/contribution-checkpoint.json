@@ -406,6 +406,79 @@
     "url": "https://github.com/Eigenwise/atomic-agents/pull/445",
     "state": "open",
     "merged": false,
+    "maintainer_can_modify": false,
+    "official_ci": [
+      {
+        "id": 43890952649,
+        "name": "Code Quality & Tests",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 910,
+        "jobs_url": "https://api.github.com/repos/Eigenwise/atomic-agents/actions/runs/43890952649/jobs",
+        "logs_url": "https://api.github.com/repos/Eigenwise/atomic-agents/actions/runs/43890952649/logs",
+        "workflow_id": 126392280,
+        "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43890952649"
+      }
+    ]
+  },
+  "batch6": {
+    "n": 6,
+    "repo": "Eigenwise/atomic-agents",
+    "title": "Reject overlapping DSPy input and output fields",
+    "branch": "fix/dspy-input-output-field-collisions-20261116",
+    "head": "04fd970bef46dd10244aaa408db1b150581c5756",
+    "tree": "f5212bd602bc96c82603adbc0f011f96c9b72147",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "a2c50fad896b17eaf746f059da11b6b31b9d0c54",
+    "validation_tree": "b152f97ee5469df6705c280c4fa4fe0794ae8cd9",
+    "validation_branch": "validation/dspy-field-collisions-20261116",
+    "status": "published",
+    "local_tests": {
+      "before_both": "7 failed, 2 passed",
+      "after_both": "9 passed",
+      "black": "254 files unchanged",
+      "flake8": "0"
+    },
+    "dedupe": {
+      "upstream_pr_heads": 298,
+      "fork_heads": 122,
+      "source_revisions": 3,
+      "equivalent_fixes": 0
+    },
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43891613069",
+    "validation_jobs": [
+      {
+        "id": 133384024763,
+        "name": "Fresh install imports every subpackage",
+        "conclusion": "success"
+      },
+      {
+        "id": 133384025015,
+        "name": "quality",
+        "conclusion": "success"
+      },
+      {
+        "id": 133384025023,
+        "name": "Native DSPy 3.0.4 field collisions before and after",
+        "conclusion": "success"
+      },
+      {
+        "id": 133384025030,
+        "name": "Native DSPy 2.5.0 field collisions before and after",
+        "conclusion": "success"
+      },
+      {
+        "id": 133384025237,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "conclusion": "success"
+      }
+    ],
+    "body": "## Problem\n\nDSPy stores input and output fields in one flat namespace. When the two Pydantic schemas share a field name, signature creation silently replaces the input with the output. Training-example creation also replaces the original input with the expected answer, then marks that answer as an input. For a `text -> text` task, the resulting example has the target text in `inputs()` and no target in `labels()`.\n\n## Change\n\nValidate that the input and output schemas have distinct Python field names before creating either a signature or a training example. Raise a clear `ValueError` listing the overlapping names. `DSPyAtomicModule` receives the same validation through signature construction. Document the requirement and a `text -> rewritten_text` example.\n\nThe check uses Python field names, so distinct fields may still share a Pydantic wire alias.\n\n## Validation\n\n- Native **DSPy 3.0.4** and historical **DSPy 2.5.0** (`dspy-ai`): unchanged source fails **7** regression cases and passes **2** controls; all **9** pass after the change on both versions.\n- Tests cover signature, module and training-example entry points, single and multiple overlaps, defaulted fields, ordinary distinct names and matching aliases with distinct Python field names. Controls check real DSPy `input_fields`, `output_fields`, `inputs()` and `labels()`.\n- Full core suite: **1,373 passed, 14 skipped** with both locked and lowest direct dependencies. Black, Flake8, constructor typing and fresh-install checks pass.\n\nThe [five-job validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43891613069) records native before/after tests and the repository's existing checks.",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/dspy-input-output-field-collisions-20261116?expand=1&title=Reject%20overlapping%20DSPy%20input%20and%20output%20fields&body=%23%23%20Problem%0A%0ADSPy%20stores%20input%20and%20output%20fields%20in%20one%20flat%20namespace.%20When%20the%20two%20Pydantic%20schemas%20share%20a%20field%20name%2C%20signature%20creation%20silently%20replaces%20the%20input%20with%20the%20output.%20Training-example%20creation%20also%20replaces%20the%20original%20input%20with%20the%20expected%20answer%2C%20then%20marks%20that%20answer%20as%20an%20input.%20For%20a%20%60text%20-%3E%20text%60%20task%2C%20the%20resulting%20example%20has%20the%20target%20text%20in%20%60inputs()%60%20and%20no%20target%20in%20%60labels()%60.%0A%0A%23%23%20Change%0A%0AValidate%20that%20the%20input%20and%20output%20schemas%20have%20distinct%20Python%20field%20names%20before%20creating%20either%20a%20signature%20or%20a%20training%20example.%20Raise%20a%20clear%20%60ValueError%60%20listing%20the%20overlapping%20names.%20%60DSPyAtomicModule%60%20receives%20the%20same%20validation%20through%20signature%20construction.%20Document%20the%20requirement%20and%20a%20%60text%20-%3E%20rewritten_text%60%20example.%0A%0AThe%20check%20uses%20Python%20field%20names%2C%20so%20distinct%20fields%20may%20still%20share%20a%20Pydantic%20wire%20alias.%0A%0A%23%23%20Validation%0A%0A-%20Native%20**DSPy%203.0.4**%20and%20historical%20**DSPy%202.5.0**%20(%60dspy-ai%60)%3A%20unchanged%20source%20fails%20**7**%20regression%20cases%20and%20passes%20**2**%20controls%3B%20all%20**9**%20pass%20after%20the%20change%20on%20both%20versions.%0A-%20Tests%20cover%20signature%2C%20module%20and%20training-example%20entry%20points%2C%20single%20and%20multiple%20overlaps%2C%20defaulted%20fields%2C%20ordinary%20distinct%20names%20and%20matching%20aliases%20with%20distinct%20Python%20field%20names.%20Controls%20check%20real%20DSPy%20%60input_fields%60%2C%20%60output_fields%60%2C%20%60inputs()%60%20and%20%60labels()%60.%0A-%20Full%20core%20suite%3A%20**1%2C373%20passed%2C%2014%20skipped**%20with%20both%20locked%20and%20lowest%20direct%20dependencies.%20Black%2C%20Flake8%2C%20constructor%20typing%20and%20fresh-install%20checks%20pass.%0A%0AThe%20%5Bfive-job%20validation%20run%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43891613069)%20records%20native%20before%2Fafter%20tests%20and%20the%20repository's%20existing%20checks.",
+    "number": 446,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/446",
+    "state": "open",
+    "merged": false,
     "maintainer_can_modify": false
   }
 }
