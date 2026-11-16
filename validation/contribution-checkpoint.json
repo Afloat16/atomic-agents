@@ -562,6 +562,81 @@
     "url": "https://github.com/Eigenwise/atomic-agents/pull/447",
     "state": "open",
     "merged": false,
-    "maintainer_can_modify": false
+    "maintainer_can_modify": false,
+    "official_ci": {
+      "run_id": 43893586662,
+      "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43893586662",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  },
+  "batch8": {
+    "n": 8,
+    "repo": "Eigenwise/atomic-agents",
+    "title": "Honor Pydantic JSON number policies in tool messages",
+    "branch": "fix/tool-message-json-number-policy-20261116",
+    "head": "d72fa65c9072f4a5ac668a9fe87f9cbba862986e",
+    "tree": "5f669ba3166052eb5256bb672ca42b0cd68b4b53",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "ba429b83bebc2d9e702455e06642923e4cd04014",
+    "validation_tree": "f63110d21d691724631dda216858d603c81dd619",
+    "validation_branch": "validation/tool-json-number-policy-20261116",
+    "status": "published",
+    "local_tests": {
+      "before": "11 failed, 7 passed",
+      "after_utils": "64 passed",
+      "after_core": "1391 passed, 14 skipped",
+      "formatter_coverage": "100%",
+      "black": "254 files unchanged",
+      "flake8": "0"
+    },
+    "dedupe": {
+      "upstream_pr_heads": 298,
+      "fork_heads": 122,
+      "source_revisions": 5,
+      "equivalent_fixes": 0
+    },
+    "primary_reference": "https://docs.pydantic.dev/latest/api/config/#pydantic.config.ConfigDict.ser_json_inf_nan",
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43894019302",
+    "validation_jobs": [
+      {
+        "id": 133392547778,
+        "name": "Fresh install imports every subpackage",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133392548345,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133392548435,
+        "name": "quality",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "remote_tests": {
+      "locked_pydantic": "2.12.4",
+      "lowest_resolved_pydantic": "2.11.4",
+      "baseline_both": "11 failed, 7 passed",
+      "after_core_both": "1391 passed, 14 skipped",
+      "formatter_coverage": "100%"
+    },
+    "body": "## Problem\n\n`format_tool_message()` dumps Pydantic values in JSON mode, then uses the standard-library JSON encoder. JSON-mode Python values still contain non-finite floats, so the final encoder ignores Pydantic's `ser_json_inf_nan` setting. For example, a model configured for `\"strings\"` emits bare `Infinity` instead of `\"Infinity\"`, while the default `\"null\"` policy also emits bare constants. Those outputs are rejected by strict JSON consumers.\n\n## Change\n\nUse the model's JSON serialization before applying the existing spacing and ASCII escaping. This honors the number policy on root and nested models, including values produced by JSON-only field serializers. Explicit `\"constants\"` behavior remains supported.\n\nThis follows Pydantic's [documented number-encoding policies](https://docs.pydantic.dev/latest/api/config/#pydantic.config.ConfigDict.ser_json_inf_nan).\n\n## Validation\n\n- **18 new cases** cover NaN, positive/negative infinity under default, null, strings and constants policies; finite-value/Unicode formatting; nested models with differing policies; and a JSON-only serializer.\n- On both locked **Pydantic 2.12.4** and the repository's lowest-direct resolution (**2.11.4**), unchanged source fails **11** cases and passes **7** controls. All new cases pass after the change.\n- Existing exact-format assertions, IDs, schema-derived function names, date/UUID/Decimal/Path/Enum values and JSON field serializers remain passing.\n- Full core suite: **1,391 passed, 14 skipped** in both dependency sets. The formatter has **100% coverage**. Black, Flake8, constructor typing and fresh-install checks pass.\n\nThe [three-job validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43894019302) records before/after results in each dependency set. No model API requests are made.",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/tool-message-json-number-policy-20261116?expand=1&title=Honor%20Pydantic%20JSON%20number%20policies%20in%20tool%20messages&body=%23%23%20Problem%0A%0A%60format_tool_message()%60%20dumps%20Pydantic%20values%20in%20JSON%20mode%2C%20then%20uses%20the%20standard-library%20JSON%20encoder.%20JSON-mode%20Python%20values%20still%20contain%20non-finite%20floats%2C%20so%20the%20final%20encoder%20ignores%20Pydantic's%20%60ser_json_inf_nan%60%20setting.%20For%20example%2C%20a%20model%20configured%20for%20%60%22strings%22%60%20emits%20bare%20%60Infinity%60%20instead%20of%20%60%22Infinity%22%60%2C%20while%20the%20default%20%60%22null%22%60%20policy%20also%20emits%20bare%20constants.%20Those%20outputs%20are%20rejected%20by%20strict%20JSON%20consumers.%0A%0A%23%23%20Change%0A%0AUse%20the%20model's%20JSON%20serialization%20before%20applying%20the%20existing%20spacing%20and%20ASCII%20escaping.%20This%20honors%20the%20number%20policy%20on%20root%20and%20nested%20models%2C%20including%20values%20produced%20by%20JSON-only%20field%20serializers.%20Explicit%20%60%22constants%22%60%20behavior%20remains%20supported.%0A%0AThis%20follows%20Pydantic's%20%5Bdocumented%20number-encoding%20policies%5D(https%3A%2F%2Fdocs.pydantic.dev%2Flatest%2Fapi%2Fconfig%2F%23pydantic.config.ConfigDict.ser_json_inf_nan).%0A%0A%23%23%20Validation%0A%0A-%20**18%20new%20cases**%20cover%20NaN%2C%20positive%2Fnegative%20infinity%20under%20default%2C%20null%2C%20strings%20and%20constants%20policies%3B%20finite-value%2FUnicode%20formatting%3B%20nested%20models%20with%20differing%20policies%3B%20and%20a%20JSON-only%20serializer.%0A-%20On%20both%20locked%20**Pydantic%202.12.4**%20and%20the%20repository's%20lowest-direct%20resolution%20(**2.11.4**)%2C%20unchanged%20source%20fails%20**11**%20cases%20and%20passes%20**7**%20controls.%20All%20new%20cases%20pass%20after%20the%20change.%0A-%20Existing%20exact-format%20assertions%2C%20IDs%2C%20schema-derived%20function%20names%2C%20date%2FUUID%2FDecimal%2FPath%2FEnum%20values%20and%20JSON%20field%20serializers%20remain%20passing.%0A-%20Full%20core%20suite%3A%20**1%2C391%20passed%2C%2014%20skipped**%20in%20both%20dependency%20sets.%20The%20formatter%20has%20**100%25%20coverage**.%20Black%2C%20Flake8%2C%20constructor%20typing%20and%20fresh-install%20checks%20pass.%0A%0AThe%20%5Bthree-job%20validation%20run%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43894019302)%20records%20before%2Fafter%20results%20in%20each%20dependency%20set.%20No%20model%20API%20requests%20are%20made.",
+    "number": 448,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/448",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false,
+    "official_ci": {
+      "run_id": 43895661752,
+      "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43895661752",
+      "status": "completed",
+      "conclusion": "success"
+    }
   }
 }
