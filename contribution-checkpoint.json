@@ -1298,11 +1298,59 @@
       }
     ],
     "full_suite": "1373 passed, 14 skipped",
-    "head_body_verified": true
+    "head_body_verified": true,
+    "official_ci": [
+      {
+        "id": 43917888135,
+        "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43917888135",
+        "name": "Code Quality & Tests",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
   },
   "extra_media_deferred": {
     "reason": "Same field traversal omission as pre-existing open PR414; no new PR or count",
     "commits": 125,
     "source_versions": 62
+  },
+  "batch19": {
+    "head": "1ee76940c66b023f5f9b9b8d34cb011184682917",
+    "tree": "2e8885f8e03db94d6a90071c6ade64d74feea431",
+    "validation_head": "e5178aaf69df23333433f9c0d13f6b27c89ddc06",
+    "validation_tree": "3f5108534b0bbad582683d6a3355db9e07cf27af",
+    "number": 459,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/459",
+    "title": "Include the durable research plan in shared agent context",
+    "body": "## Problem\n\n`ResearchStateProvider` is documented to expose the current plan, sources, and learnings to the shared agent prompts, but it never reads `ResearchState.plan`. A populated plan with several sub-topics still renders \"No research has been done yet.\" until sources or learnings exist. Later prompts also omit the planned topics, their initial queries, and their current sufficiency state.\n\n## Change\n\nRender the durable plan before the existing sources and learnings. Preserve topic/query order and read the live `SubTopic.sufficient` flags on each call, so all generators sharing the provider see state updates. Keep the prior output byte-for-byte when the plan is empty.\n\nThe plan remains data in the existing dynamic-context section. The user's question continues through the existing input schemas.\n\nThis differs from #425, which improves learning-grouping performance while preserving the old rendered text; its implementation still fails the same plan-presence regressions.\n\n## Validation\n\n- Nine new cases use the actual `ResearchState`, `SubTopic`, provider, and `SystemPromptGenerator`.\n- On unchanged main, and separately with #425 applied: **5 failed, 4 passed**. With this change, the new cases and existing system-prompt tests report **20 passed**.\n- Cover multiple topics and queries, both status values, all source/learning combinations, shared generators after mutation, clearing the plan, and unchanged state after rendering.\n- Combined core and new example tests: **1,382 passed, 14 skipped**, with both locked and minimum direct dependencies.\n- Black, Flake8, constructor typing, and clean-wheel import checks passed.\n\nValidation run: https://github.com/Afloat16/atomic-agents/actions/runs/43918699661",
+    "state": "open",
+    "merged": false,
+    "status": "published",
+    "maintainer_can_modify": false,
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43918699661",
+    "validation_jobs": [
+      {
+        "id": 133479782144,
+        "name": "quality",
+        "conclusion": "success"
+      },
+      {
+        "id": 133479782389,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "conclusion": "success"
+      },
+      {
+        "id": 133479782689,
+        "name": "Fresh install imports every subpackage",
+        "conclusion": "success"
+      },
+      {
+        "id": 133479782879,
+        "name": "Native shared prompt regressions",
+        "conclusion": "success"
+      }
+    ],
+    "full_suite": "1382 passed, 14 skipped (core plus 9 new example cases)",
+    "head_body_verified": true
   }
 }
