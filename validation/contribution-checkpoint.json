@@ -638,5 +638,74 @@
       "status": "completed",
       "conclusion": "success"
     }
+  },
+  "batch9": {
+    "n": 9,
+    "repo": "Eigenwise/atomic-agents",
+    "title": "Keep hook registration failures from corrupting agent state",
+    "branch": "fix/hook-registration-failure-state-20261116",
+    "head": "e784ee7660b40c5ec8c86bfcf7003cd0ededfb60",
+    "tree": "b75828793ae6adab94d558ebb87b4f09ec5daadb",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "b4eb0cd5f291be60273fc7244e965a33a4c40a0d",
+    "validation_tree": "29539a4bd1b0e28eeb09927557edab5699425ca2",
+    "validation_branch": "validation/hook-registration-failures-20261116",
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43897473312",
+    "validation_jobs": [
+      {
+        "id": 133404828636,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "conclusion": "success"
+      },
+      {
+        "id": 133404828750,
+        "name": "Fresh install imports every subpackage",
+        "conclusion": "success"
+      },
+      {
+        "id": 133404828941,
+        "name": "quality",
+        "conclusion": "success"
+      }
+    ],
+    "status": "published",
+    "local_tests": {
+      "before": "6 failed, 22 passed",
+      "after_hooks": "28 passed",
+      "core": "1379 passed, 14 skipped",
+      "atomic_agent_coverage": "100%",
+      "black": "254 files unchanged",
+      "flake8": "0"
+    },
+    "dedupe": {
+      "upstream_pr_heads": 298,
+      "fork_heads": 122,
+      "source_revisions": 62,
+      "distinct_hook_implementations": 6,
+      "equivalent_fixes": 0,
+      "renamed_paths": [
+        "atomic-agents/atomic_agents/agents/base_agent.py",
+        "atomic_agents/agents/base_agent.py",
+        "atomic_agents/agents/base_chat_agent.py",
+        "atomic_agents_new/agents/basic_chat_agent.py"
+      ]
+    },
+    "superseded_validation": {
+      "run_id": 43897241005,
+      "reason": "Baseline was missing from shallow checkout; validation-only fetch corrected."
+    },
+    "body": "## Problem\n\nA failed `register_hook()` call still appends the rejected handler to the agent's registry. With a real Instructor client, an unknown event therefore poisons later lifecycle operations: `disable_hooks()` raises before detaching normal callbacks while already reporting that hooks are disabled.\n\nDeferred registrations have a related failure path. If `enable_hooks()` encounters an invalid event, it leaves the agent marked enabled and keeps any callbacks attached earlier in that attempt.\n\n## Change\n\nRetain enabled registrations only after Instructor accepts them. During resume, mark the agent enabled only after all registrations succeed; on failure, remove callbacks attached by that attempt and preserve the disabled state. The invalid deferred registration can then be removed before retrying.\n\nLocal token events, duplicate registrations, the client's event validation and callbacks owned directly by the client retain their existing behavior.\n\n## Validation\n\n- Six new cases use native synchronous and asynchronous Instructor hook registries, with the rejected event both before and after valid registrations.\n- Unchanged main: **6 failed, 22 passed**. Fixed hook suite: **28 passed**. The cases verify rollback of duplicate callbacks, preservation of foreign callbacks, local-event suspension and successful recovery.\n- Full core suite: **1,379 passed, 14 skipped** on both locked and lowest-direct dependencies; the `AtomicAgent` module has **100% coverage** in the coverage run.\n- Repository-wide Black and Flake8, constructor typing, wheel installation and native Instructor/OpenAI import smoke checks pass.\n\nThe [three-job validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43897473312) records unchanged-source failures and repaired full-suite results in both dependency sets. No model API requests are made.",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/hook-registration-failure-state-20261116?expand=1&title=Keep%20hook%20registration%20failures%20from%20corrupting%20agent%20state&body=%23%23%20Problem%0A%0AA%20failed%20%60register_hook()%60%20call%20still%20appends%20the%20rejected%20handler%20to%20the%20agent's%20registry.%20With%20a%20real%20Instructor%20client%2C%20an%20unknown%20event%20therefore%20poisons%20later%20lifecycle%20operations%3A%20%60disable_hooks()%60%20raises%20before%20detaching%20normal%20callbacks%20while%20already%20reporting%20that%20hooks%20are%20disabled.%0A%0ADeferred%20registrations%20have%20a%20related%20failure%20path.%20If%20%60enable_hooks()%60%20encounters%20an%20invalid%20event%2C%20it%20leaves%20the%20agent%20marked%20enabled%20and%20keeps%20any%20callbacks%20attached%20earlier%20in%20that%20attempt.%0A%0A%23%23%20Change%0A%0ARetain%20enabled%20registrations%20only%20after%20Instructor%20accepts%20them.%20During%20resume%2C%20mark%20the%20agent%20enabled%20only%20after%20all%20registrations%20succeed%3B%20on%20failure%2C%20remove%20callbacks%20attached%20by%20that%20attempt%20and%20preserve%20the%20disabled%20state.%20The%20invalid%20deferred%20registration%20can%20then%20be%20removed%20before%20retrying.%0A%0ALocal%20token%20events%2C%20duplicate%20registrations%2C%20the%20client's%20event%20validation%20and%20callbacks%20owned%20directly%20by%20the%20client%20retain%20their%20existing%20behavior.%0A%0A%23%23%20Validation%0A%0A-%20Six%20new%20cases%20use%20native%20synchronous%20and%20asynchronous%20Instructor%20hook%20registries%2C%20with%20the%20rejected%20event%20both%20before%20and%20after%20valid%20registrations.%0A-%20Unchanged%20main%3A%20**6%20failed%2C%2022%20passed**.%20Fixed%20hook%20suite%3A%20**28%20passed**.%20The%20cases%20verify%20rollback%20of%20duplicate%20callbacks%2C%20preservation%20of%20foreign%20callbacks%2C%20local-event%20suspension%20and%20successful%20recovery.%0A-%20Full%20core%20suite%3A%20**1%2C379%20passed%2C%2014%20skipped**%20on%20both%20locked%20and%20lowest-direct%20dependencies%3B%20the%20%60AtomicAgent%60%20module%20has%20**100%25%20coverage**%20in%20the%20coverage%20run.%0A-%20Repository-wide%20Black%20and%20Flake8%2C%20constructor%20typing%2C%20wheel%20installation%20and%20native%20Instructor%2FOpenAI%20import%20smoke%20checks%20pass.%0A%0AThe%20%5Bthree-job%20validation%20run%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43897473312)%20records%20unchanged-source%20failures%20and%20repaired%20full-suite%20results%20in%20both%20dependency%20sets.%20No%20model%20API%20requests%20are%20made.",
+    "number": 449,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/449",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false
+  },
+  "rename_audit": {
+    "evidence": "audit/atomic_source_rename_audit.json.gz",
+    "youtube_old_basename_versions": 8,
+    "equivalent_fixes": 0,
+    "hook_source_versions": 62
   }
 }
