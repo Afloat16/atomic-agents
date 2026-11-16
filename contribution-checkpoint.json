@@ -842,5 +842,152 @@
       "conclusion": "success",
       "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43900612676"
     }
+  },
+  "batch12": {
+    "n": 12,
+    "repo": "Eigenwise/atomic-agents",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "e71bb2ee1a95b372fea15b0d8a5f857c8eccb857",
+    "validation_tree": "e7f533edc854cfce382a2ccafce4716be4a32069",
+    "validation_branch": "validation/dspy-training-genres-20261116",
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43901938335",
+    "status": "published",
+    "local_tests": {
+      "before": "2 failed, 1 passed",
+      "after_dspy304": "3 passed",
+      "after_dspy25": "3 passed",
+      "black": "254 files unchanged",
+      "flake8": "0"
+    },
+    "dedupe": {
+      "upstream_pr_heads": 298,
+      "fork_heads": 122,
+      "source_revisions": 3,
+      "equivalent_fixes": 0,
+      "symbol_history_checked": "TRAINING_DATASET across all refs including former filenames"
+    },
+    "title": "Keep all genres in limited DSPy training sets",
+    "branch": "fix/dspy-training-genre-coverage-20261116",
+    "head": "57bcd8cc644f3642671f0aa41b519d1fb3e983b5",
+    "tree": "0bb2b77df34b9288d47db78aaad9ae9ee86f0090",
+    "validation_jobs": [
+      {
+        "id": 133420537974,
+        "name": "quality",
+        "conclusion": "success"
+      },
+      {
+        "id": 133420538395,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "conclusion": "success"
+      },
+      {
+        "id": 133420538474,
+        "name": "Fresh install imports every subpackage",
+        "conclusion": "success"
+      },
+      {
+        "id": 133420538490,
+        "name": "Native training SDK 3.0.4",
+        "conclusion": "success"
+      },
+      {
+        "id": 133420538574,
+        "name": "Native training SDK 2.5.0",
+        "conclusion": "success"
+      }
+    ],
+    "body": "## Problem\n\nThe training catalog groups ten examples of each genre together. Stage 1 takes its first 30 examples, so its optimizer never receives horror, sci-fi or romance. Stage 3 takes the first 40 and still omits sci-fi and romance, despite evaluating a six-genre classification task.\n\n## Change\n\nInterleave the genre groups deterministically before the existing stages select their prefixes. All 60 original examples remain present without copying or modifying their content:\n\n- Stage 1 receives five examples of each of the six genres.\n- Stage 3 receives six or seven examples per genre.\n\nDocument these candidate-pool counts in the example guide.\n\n## Validation\n\nThree tests exercise the actual Stage 1 training-set construction and Stage 3 conversion into native DSPy examples. They verify input keys, valid output schemas, coverage of all six genres and preservation of every original training example.\n\nOn both native DSPy **3.0.4** and **2.5.0**, unchanged source reports **2 failed, 1 passed**; the repaired suite reports **3 passed**. The [five-job validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43901938335) records the actual before/after genre counts. Complete core suites report **1,373 passed, 14 skipped** on locked and lowest-direct dependencies; repository-wide Black, Flake8, constructor typing and fresh-install checks pass.\n\nTests stop at the optimizer's compile boundary without model requests. This corrects its candidate training pool; it does not claim a measured accuracy increase or that the optimizer's final few-shot selection contains every genre.",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/dspy-training-genre-coverage-20261116?expand=1&title=Keep%20all%20genres%20in%20limited%20DSPy%20training%20sets&body=%23%23%20Problem%0A%0AThe%20training%20catalog%20groups%20ten%20examples%20of%20each%20genre%20together.%20Stage%201%20takes%20its%20first%2030%20examples%2C%20so%20its%20optimizer%20never%20receives%20horror%2C%20sci-fi%20or%20romance.%20Stage%203%20takes%20the%20first%2040%20and%20still%20omits%20sci-fi%20and%20romance%2C%20despite%20evaluating%20a%20six-genre%20classification%20task.%0A%0A%23%23%20Change%0A%0AInterleave%20the%20genre%20groups%20deterministically%20before%20the%20existing%20stages%20select%20their%20prefixes.%20All%2060%20original%20examples%20remain%20present%20without%20copying%20or%20modifying%20their%20content%3A%0A%0A-%20Stage%201%20receives%20five%20examples%20of%20each%20of%20the%20six%20genres.%0A-%20Stage%203%20receives%20six%20or%20seven%20examples%20per%20genre.%0A%0ADocument%20these%20candidate-pool%20counts%20in%20the%20example%20guide.%0A%0A%23%23%20Validation%0A%0AThree%20tests%20exercise%20the%20actual%20Stage%201%20training-set%20construction%20and%20Stage%203%20conversion%20into%20native%20DSPy%20examples.%20They%20verify%20input%20keys%2C%20valid%20output%20schemas%2C%20coverage%20of%20all%20six%20genres%20and%20preservation%20of%20every%20original%20training%20example.%0A%0AOn%20both%20native%20DSPy%20**3.0.4**%20and%20**2.5.0**%2C%20unchanged%20source%20reports%20**2%20failed%2C%201%20passed**%3B%20the%20repaired%20suite%20reports%20**3%20passed**.%20The%20%5Bfive-job%20validation%20run%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43901938335)%20records%20the%20actual%20before%2Fafter%20genre%20counts.%20Complete%20core%20suites%20report%20**1%2C373%20passed%2C%2014%20skipped**%20on%20locked%20and%20lowest-direct%20dependencies%3B%20repository-wide%20Black%2C%20Flake8%2C%20constructor%20typing%20and%20fresh-install%20checks%20pass.%0A%0ATests%20stop%20at%20the%20optimizer's%20compile%20boundary%20without%20model%20requests.%20This%20corrects%20its%20candidate%20training%20pool%3B%20it%20does%20not%20claim%20a%20measured%20accuracy%20increase%20or%20that%20the%20optimizer's%20final%20few-shot%20selection%20contains%20every%20genre.",
+    "number": 452,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/452",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false,
+    "official_ci": {
+      "id": 43902277999,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43902277999"
+    }
+  },
+  "batch13": {
+    "n": 13,
+    "repo": "Eigenwise/atomic-agents",
+    "status": "published",
+    "branch": "fix/searxng-social-category-20261116",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "6653a2952660ff2675ae6a9e1ecc9f190689490d",
+    "validation_branch": "validation/searxng-social-category-20261116",
+    "local_tests": {
+      "before": "4 failed, 12 passed",
+      "after": "23 passed including 7 existing controls",
+      "native_http_before": "4 mismatches, 12 passed",
+      "native_http_after": "0 mismatches, 16 passed",
+      "native_searxng_commit": "2d500cb6b8e98b5f57fb446786e91f8de03be89f",
+      "black": "254 files unchanged",
+      "flake8": "0"
+    },
+    "dedupe": {
+      "upstream_pr_heads": 298,
+      "fork_heads": 122,
+      "source_revisions": 48,
+      "distinct_historical_paths": 11,
+      "space_category_literal_versions": 0,
+      "related_prior_prs": [
+        371,
+        372
+      ]
+    },
+    "validation_tree": "59242f0a644d06ed7ebb5f4aa29f4ac06b5c6a51",
+    "superseded_validation": [
+      {
+        "run": 43903512706,
+        "reason": "Workflow rejected before any job: runner context is unavailable in job env; replaced with github.workspace in validation-only workflow."
+      },
+      {
+        "run": 43903715769,
+        "reason": "Native HTTP and locked/fresh jobs succeeded; current pytest-asyncio rejected existing quoted function scope in the standalone tool pytest.ini. Validation command now explicitly selects its intended function scope."
+      }
+    ],
+    "title": "Route social media searches to the correct SearXNG category",
+    "head": "cb1e0292b70c62be36a084ab1fb24945c21358ce",
+    "tree": "ce901e0d46cb159ae58741a66f5dd97cd84705ca",
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43904001676",
+    "validation_jobs": [
+      {
+        "id": 133427825475,
+        "name": "Native SearXNG parser over HTTP",
+        "conclusion": "success"
+      },
+      {
+        "id": 133427825679,
+        "name": "quality",
+        "conclusion": "success"
+      },
+      {
+        "id": 133427825716,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "conclusion": "success"
+      },
+      {
+        "id": 133427825861,
+        "name": "Fresh install imports every subpackage",
+        "conclusion": "success"
+      }
+    ],
+    "body": "## Problem\n\nThe public input accepts `social_media`, but SearXNG's category is named `social media`. Sending the underscored name causes the server's category parser to ignore it. Result filtering also compares against the underscored name, so real social-media hits are discarded.\n\nThe same issue exists in the standalone Forge tool and its deep-research, orchestration and web-search example copies.\n\n## Change\n\nTranslate the existing public category once before requesting and filtering results. Keep `social_media` in the public input/output schemas, so callers retain the same interface. General, news and unrestricted searches retain their existing behavior.\n\n## Validation\n\n- New tests cover all four distributed tools across `general`, `news`, `social_media` and `None`: **4 failed, 12 passed** on unchanged source; all **16 pass** after repair.\n- Including existing standalone tests: **23 passed** on locked and lowest-direct dependencies.\n- Native SearXNG [`parse_generic`](https://github.com/searxng/searxng/blob/2d500cb6b8e98b5f57fb446786e91f8de03be89f/searx/webadapter.py) and `Preferences` are exercised through real local HTTP requests, with an offline engine catalog and deterministic response fixtures. Before repair, all four social searches select `general` and return no results. After repair, all select `social media` and retain the matching result; all 12 controls also pass.\n- Complete core suites: **1,373 passed, 14 skipped** on both dependency sets. Repository-wide Black, Flake8, constructor typing and fresh-install checks pass.\n\nThe [four-job validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43904001676) records unchanged-source and repaired native behavior. The current pytest-asyncio check explicitly selects function scope because the tool's existing INI file quotes that value. No live search-provider or model requests are needed.",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/searxng-social-category-20261116?expand=1&title=Route%20social%20media%20searches%20to%20the%20correct%20SearXNG%20category&body=%23%23%20Problem%0A%0AThe%20public%20input%20accepts%20%60social_media%60%2C%20but%20SearXNG's%20category%20is%20named%20%60social%20media%60.%20Sending%20the%20underscored%20name%20causes%20the%20server's%20category%20parser%20to%20ignore%20it.%20Result%20filtering%20also%20compares%20against%20the%20underscored%20name%2C%20so%20real%20social-media%20hits%20are%20discarded.%0A%0AThe%20same%20issue%20exists%20in%20the%20standalone%20Forge%20tool%20and%20its%20deep-research%2C%20orchestration%20and%20web-search%20example%20copies.%0A%0A%23%23%20Change%0A%0ATranslate%20the%20existing%20public%20category%20once%20before%20requesting%20and%20filtering%20results.%20Keep%20%60social_media%60%20in%20the%20public%20input%2Foutput%20schemas%2C%20so%20callers%20retain%20the%20same%20interface.%20General%2C%20news%20and%20unrestricted%20searches%20retain%20their%20existing%20behavior.%0A%0A%23%23%20Validation%0A%0A-%20New%20tests%20cover%20all%20four%20distributed%20tools%20across%20%60general%60%2C%20%60news%60%2C%20%60social_media%60%20and%20%60None%60%3A%20**4%20failed%2C%2012%20passed**%20on%20unchanged%20source%3B%20all%20**16%20pass**%20after%20repair.%0A-%20Including%20existing%20standalone%20tests%3A%20**23%20passed**%20on%20locked%20and%20lowest-direct%20dependencies.%0A-%20Native%20SearXNG%20%5B%60parse_generic%60%5D(https%3A%2F%2Fgithub.com%2Fsearxng%2Fsearxng%2Fblob%2F2d500cb6b8e98b5f57fb446786e91f8de03be89f%2Fsearx%2Fwebadapter.py)%20and%20%60Preferences%60%20are%20exercised%20through%20real%20local%20HTTP%20requests%2C%20with%20an%20offline%20engine%20catalog%20and%20deterministic%20response%20fixtures.%20Before%20repair%2C%20all%20four%20social%20searches%20select%20%60general%60%20and%20return%20no%20results.%20After%20repair%2C%20all%20select%20%60social%20media%60%20and%20retain%20the%20matching%20result%3B%20all%2012%20controls%20also%20pass.%0A-%20Complete%20core%20suites%3A%20**1%2C373%20passed%2C%2014%20skipped**%20on%20both%20dependency%20sets.%20Repository-wide%20Black%2C%20Flake8%2C%20constructor%20typing%20and%20fresh-install%20checks%20pass.%0A%0AThe%20%5Bfour-job%20validation%20run%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43904001676)%20records%20unchanged-source%20and%20repaired%20native%20behavior.%20The%20current%20pytest-asyncio%20check%20explicitly%20selects%20function%20scope%20because%20the%20tool's%20existing%20INI%20file%20quotes%20that%20value.%20No%20live%20search-provider%20or%20model%20requests%20are%20needed.",
+    "number": 453,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/453",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false,
+    "official_ci": {
+      "id": 43904380333,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43904380333"
+    }
   }
 }
