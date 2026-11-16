@@ -273,12 +273,12 @@ jobs:
           cp atomic-agents/atomic_agents/connectors/mcp/mcp_factory.py /tmp/mcp_factory.fixed.py
           git show 6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f:atomic-agents/atomic_agents/connectors/mcp/mcp_factory.py > atomic-agents/atomic_agents/connectors/mcp/mcp_factory.py
           set +e
-          .venv/bin/python -m pytest atomic-agents/tests/connectors/mcp/test_resource_template_names.py -q > /tmp/resource-before.log 2>&1
+          .venv/bin/python -m pytest atomic-agents/tests/connectors/mcp/test_resource_template_names.py atomic-agents/tests/connectors/mcp/test_mcp_factory.py -q -k literal > /tmp/resource-before.log 2>&1
           baseline_status=$?
           set -e
           cat /tmp/resource-before.log
           cp /tmp/mcp_factory.fixed.py atomic-agents/atomic_agents/connectors/mcp/mcp_factory.py
           test "$baseline_status" -eq 1
-          grep -q '6 failed, 4 passed' /tmp/resource-before.log
+          grep -q '8 failed, 6 passed' /tmp/resource-before.log
       - name: Validate JSON-round-tripped resource requests
-        run: .venv/bin/python -m pytest atomic-agents/tests/connectors/mcp/test_resource_template_names.py -q
+        run: .venv/bin/python -m pytest atomic-agents/tests/connectors/mcp/test_resource_template_names.py atomic-agents/tests/connectors/mcp/test_mcp_factory.py -q -k literal
