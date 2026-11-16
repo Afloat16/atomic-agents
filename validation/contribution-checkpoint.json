@@ -1,0 +1,82 @@
+{
+  "rules": {
+    "repository": "Eigenwise/atomic-agents",
+    "checked_head": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "checked_at": "2026-11-16T14:03:03.854Z",
+    "sources": [
+      "https://github.com/Eigenwise/atomic-agents/blob/6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f/AGENTS.md",
+      "https://github.com/Eigenwise/atomic-agents/blob/6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f/docs/contributing.md",
+      "https://github.com/Eigenwise/atomic-agents/blob/6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f/guides/DEV_GUIDE.md",
+      "https://github.com/Eigenwise/atomic-agents/blob/6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f/README.md"
+    ],
+    "concurrent_pr_cap": null,
+    "mandatory_prior_issue": false,
+    "mandatory_disclosure": false,
+    "ai_code_prohibited": false,
+    "requirements": [
+      "uv sync",
+      "Black line length 127",
+      "flake8",
+      "pytest --cov=atomic_agents atomic-agents",
+      "100% coverage of new functionality",
+      "Clear title/description, related issues if any, test results",
+      "Skill changes require consent; not applicable to ordinary code fixes"
+    ]
+  },
+  "batch1": {
+    "n": 1,
+    "repo": "Eigenwise/atomic-agents",
+    "title": "Preserve scalar choices next to MCP schema references",
+    "branch": "fix/mcp-reference-scalar-choices-20261116",
+    "head": "ce77eb2bb4d447657e352f9163b1dfb6bd894c30",
+    "tree": "c27965ff642b4bc14caa9ee1e8b91128a602be70",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "30c1cf17c6e73d331336356073e0be6879a015c2",
+    "validation_tree": "9291325a57c6faf387e1be4d6cd23a9c14aae198",
+    "status": "published_open",
+    "local_tests": {
+      "before": "21 failed, 1 passed",
+      "after": "22 passed",
+      "full_suite": "1395 passed, 14 skipped",
+      "baseline_full_suite": "1373 passed, 14 skipped",
+      "black": "254 files unchanged",
+      "flake8": "0",
+      "pyright": "0 errors, 0 warnings, 0 informations"
+    },
+    "dedupe": {
+      "pr_heads": 298,
+      "fork_heads": 122,
+      "source_commits": 41,
+      "equivalent_fixes": 0
+    },
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43883622055",
+    "validation_jobs": [
+      {
+        "id": 133355765311,
+        "name": "Fresh install imports every subpackage",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133355765815,
+        "name": "quality",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133355765924,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "body": "## Problem\n\nA valid MCP input schema can narrow a reusable enum with `{\"$ref\": \"#/$defs/Size\", \"enum\": [\"small\"]}`. The converter resolves the reference first and skips the sibling `enum` or `const`. A FastMCP tool advertising only `small` consequently becomes an Atomic model that accepts and advertises `large` as well.\n\n[JSON Schema 2020-12 permits constraints alongside `$ref`](https://json-schema.org/draft/2020-12/json-schema-core#section-8.2.3.1).\n\n## Change\n\nResolve scalar finite choices before a bare reference. The existing choice helper already intersects choices with the complete schema, including referenced definitions, so the generated validator and model-facing schema preserve the narrowed set without adding another validation path. Ordinary references keep their existing behavior.\n\n## Validation\n\n- New regression suite: **21 failures and 1 passing control on unchanged main**, then **22 passed** with the fix.\n- The tests obtain real FastMCP-generated enum schemas and check both Pydantic validation and emitted JSON Schema. Additional cases cover reference chains, numeric bounds, boolean/number distinctions, nullable values, nested objects/arrays/mappings, impossible intersections, optional fields, and unresolved-reference fallback.\n- [Repository validation matrix](https://github.com/Afloat16/atomic-agents/actions/runs/43883622055): **all three jobs pass**. Both the locked and lowest-direct-dependency environments pass **1,395 tests, with 14 existing skips**; the clean wheel installation and subpackage import checks pass.\n- Repository-wide Black and Flake8, the AgentConfig Pyright check, and `git diff --check` pass.\n\nThe tests run locally against the installed MCP SDK, Pydantic, and JSON Schema validators; no external model calls are made.\n",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/mcp-reference-scalar-choices-20261116?expand=1&title=Preserve%20scalar%20choices%20next%20to%20MCP%20schema%20references&body=%23%23%20Problem%0A%0AA%20valid%20MCP%20input%20schema%20can%20narrow%20a%20reusable%20enum%20with%20%60%7B%22%24ref%22%3A%20%22%23%2F%24defs%2FSize%22%2C%20%22enum%22%3A%20%5B%22small%22%5D%7D%60.%20The%20converter%20resolves%20the%20reference%20first%20and%20skips%20the%20sibling%20%60enum%60%20or%20%60const%60.%20A%20FastMCP%20tool%20advertising%20only%20%60small%60%20consequently%20becomes%20an%20Atomic%20model%20that%20accepts%20and%20advertises%20%60large%60%20as%20well.%0A%0A%5BJSON%20Schema%202020-12%20permits%20constraints%20alongside%20%60%24ref%60%5D(https%3A%2F%2Fjson-schema.org%2Fdraft%2F2020-12%2Fjson-schema-core%23section-8.2.3.1).%0A%0A%23%23%20Change%0A%0AResolve%20scalar%20finite%20choices%20before%20a%20bare%20reference.%20The%20existing%20choice%20helper%20already%20intersects%20choices%20with%20the%20complete%20schema%2C%20including%20referenced%20definitions%2C%20so%20the%20generated%20validator%20and%20model-facing%20schema%20preserve%20the%20narrowed%20set%20without%20adding%20another%20validation%20path.%20Ordinary%20references%20keep%20their%20existing%20behavior.%0A%0A%23%23%20Validation%0A%0A-%20New%20regression%20suite%3A%20**21%20failures%20and%201%20passing%20control%20on%20unchanged%20main**%2C%20then%20**22%20passed**%20with%20the%20fix.%0A-%20The%20tests%20obtain%20real%20FastMCP-generated%20enum%20schemas%20and%20check%20both%20Pydantic%20validation%20and%20emitted%20JSON%20Schema.%20Additional%20cases%20cover%20reference%20chains%2C%20numeric%20bounds%2C%20boolean%2Fnumber%20distinctions%2C%20nullable%20values%2C%20nested%20objects%2Farrays%2Fmappings%2C%20impossible%20intersections%2C%20optional%20fields%2C%20and%20unresolved-reference%20fallback.%0A-%20%5BRepository%20validation%20matrix%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43883622055)%3A%20**all%20three%20jobs%20pass**.%20Both%20the%20locked%20and%20lowest-direct-dependency%20environments%20pass%20**1%2C395%20tests%2C%20with%2014%20existing%20skips**%3B%20the%20clean%20wheel%20installation%20and%20subpackage%20import%20checks%20pass.%0A-%20Repository-wide%20Black%20and%20Flake8%2C%20the%20AgentConfig%20Pyright%20check%2C%20and%20%60git%20diff%20--check%60%20pass.%0A%0AThe%20tests%20run%20locally%20against%20the%20installed%20MCP%20SDK%2C%20Pydantic%2C%20and%20JSON%20Schema%20validators%3B%20no%20external%20model%20calls%20are%20made.%0A",
+    "number": 441,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/441",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false,
+    "official_ci": []
+  }
+}
