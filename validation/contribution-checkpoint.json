@@ -479,6 +479,89 @@
     "url": "https://github.com/Eigenwise/atomic-agents/pull/446",
     "state": "open",
     "merged": false,
+    "maintainer_can_modify": false,
+    "official_ci": [
+      {
+        "id": 43892178969,
+        "name": "Code Quality & Tests",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 911,
+        "jobs_url": "https://api.github.com/repos/Eigenwise/atomic-agents/actions/runs/43892178969/jobs",
+        "logs_url": "https://api.github.com/repos/Eigenwise/atomic-agents/actions/runs/43892178969/logs",
+        "workflow_id": 126392280,
+        "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43892178969"
+      }
+    ]
+  },
+  "batch7": {
+    "n": 7,
+    "repo": "Eigenwise/atomic-agents",
+    "title": "Honor configured caption languages in YouTube examples",
+    "branch": "fix/youtube-configured-language-fallbacks-20261116",
+    "head": "dc342d4bb1b788bb84ce4caf72b2561ac5dc527a",
+    "tree": "9d6fa8fbc56f05552ba59a03c11d7c72d9c2ae95",
+    "baseline": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "validation_head": "fa6a825075d2052b3f44f7e698f2b405f4d6ec52",
+    "validation_tree": "a03b75ffbb64b595182ac0ef667d3250407d99e9",
+    "validation_branch": "validation/youtube-configured-languages-20261116",
+    "status": "published",
+    "local_tests": {
+      "before_both": "8 failed, 4 passed",
+      "after_both": "12 passed",
+      "versions": [
+        "youtube-transcript-api 1.1.1",
+        "youtube-transcript-api 1.2.3"
+      ],
+      "black": "254 files unchanged",
+      "flake8": "0"
+    },
+    "dedupe": {
+      "upstream_pr_heads": 298,
+      "fork_heads": 122,
+      "source_revisions": 19,
+      "distinct_language_implementations": 3,
+      "equivalent_fixes": 0
+    },
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43892509518",
+    "validation_jobs": [
+      {
+        "id": 133387198750,
+        "name": "Fresh install imports every subpackage",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133387199223,
+        "name": "Native YouTube Transcript API 1.2.3 language selection",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133387199459,
+        "name": "Native YouTube Transcript API 1.1.1 language selection",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133387199499,
+        "name": "quality",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133387199643,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "body": "## Problem\n\nBoth YouTube example tools expose a `languages` configuration and copy it onto the tool, but never pass it to the transcript client. When the request omits `language`, the client only tries its default `en`. A configured German transcript fails to load, a German-first list can select English instead, and even the examples' default `en-US`/`en-GB` fallbacks are ignored.\n\n## Change\n\nPass the existing configured list to `YouTubeTranscriptApi.fetch()` when no per-request language is supplied. An explicit request language retains its existing override behavior. Apply the same two-line fix to the summarizer and recipe examples, and document their language policy.\n\n## Validation\n\n- **youtube-transcript-api 1.2.3** (lockfile) and **1.1.1** (declared minimum): unchanged tools fail **8** regressions and pass **4** controls; the fix passes all **12** on each version.\n- The tests run the real transcript SDK and Requests transport over deterministic page, player and caption HTTP responses. They verify the selected caption text, priority order, unavailable-language fallback, regional-English defaults, explicit overrides and unchanged configuration lists.\n- Metadata lookup is supplied locally; no live YouTube request or model request is made.\n- Full core suite: **1,373 passed, 14 skipped** with both locked and lowest direct dependencies. Black, Flake8, constructor typing and fresh-install checks pass.\n\nThe [five-job validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43892509518) records native before/after behavior and the repository's existing checks.",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/youtube-configured-language-fallbacks-20261116?expand=1&title=Honor%20configured%20caption%20languages%20in%20YouTube%20examples&body=%23%23%20Problem%0A%0ABoth%20YouTube%20example%20tools%20expose%20a%20%60languages%60%20configuration%20and%20copy%20it%20onto%20the%20tool%2C%20but%20never%20pass%20it%20to%20the%20transcript%20client.%20When%20the%20request%20omits%20%60language%60%2C%20the%20client%20only%20tries%20its%20default%20%60en%60.%20A%20configured%20German%20transcript%20fails%20to%20load%2C%20a%20German-first%20list%20can%20select%20English%20instead%2C%20and%20even%20the%20examples'%20default%20%60en-US%60%2F%60en-GB%60%20fallbacks%20are%20ignored.%0A%0A%23%23%20Change%0A%0APass%20the%20existing%20configured%20list%20to%20%60YouTubeTranscriptApi.fetch()%60%20when%20no%20per-request%20language%20is%20supplied.%20An%20explicit%20request%20language%20retains%20its%20existing%20override%20behavior.%20Apply%20the%20same%20two-line%20fix%20to%20the%20summarizer%20and%20recipe%20examples%2C%20and%20document%20their%20language%20policy.%0A%0A%23%23%20Validation%0A%0A-%20**youtube-transcript-api%201.2.3**%20(lockfile)%20and%20**1.1.1**%20(declared%20minimum)%3A%20unchanged%20tools%20fail%20**8**%20regressions%20and%20pass%20**4**%20controls%3B%20the%20fix%20passes%20all%20**12**%20on%20each%20version.%0A-%20The%20tests%20run%20the%20real%20transcript%20SDK%20and%20Requests%20transport%20over%20deterministic%20page%2C%20player%20and%20caption%20HTTP%20responses.%20They%20verify%20the%20selected%20caption%20text%2C%20priority%20order%2C%20unavailable-language%20fallback%2C%20regional-English%20defaults%2C%20explicit%20overrides%20and%20unchanged%20configuration%20lists.%0A-%20Metadata%20lookup%20is%20supplied%20locally%3B%20no%20live%20YouTube%20request%20or%20model%20request%20is%20made.%0A-%20Full%20core%20suite%3A%20**1%2C373%20passed%2C%2014%20skipped**%20with%20both%20locked%20and%20lowest%20direct%20dependencies.%20Black%2C%20Flake8%2C%20constructor%20typing%20and%20fresh-install%20checks%20pass.%0A%0AThe%20%5Bfive-job%20validation%20run%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43892509518)%20records%20native%20before%2Fafter%20behavior%20and%20the%20repository's%20existing%20checks.",
+    "number": 447,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/447",
+    "state": "open",
+    "merged": false,
     "maintainer_can_modify": false
   }
 }
