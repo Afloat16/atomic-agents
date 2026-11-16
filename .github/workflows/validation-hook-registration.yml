@@ -59,6 +59,7 @@ jobs:
 
       - name: Reproduce native hook registration failures on unchanged main
         run: |
+          git fetch --depth=1 origin 6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f
           cp atomic-agents/atomic_agents/agents/atomic_agent.py /tmp/atomic-agent-repaired.py
           git show 6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f:atomic-agents/atomic_agents/agents/atomic_agent.py > atomic-agents/atomic_agents/agents/atomic_agent.py
           set +e
@@ -261,6 +262,7 @@ jobs:
 
       - name: Reproduce native hook registration failures on unchanged main
         run: |
+          git fetch --depth=1 origin 6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f
           cp atomic-agents/atomic_agents/agents/atomic_agent.py /tmp/atomic-agent-repaired.py
           git show 6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f:atomic-agents/atomic_agents/agents/atomic_agent.py > atomic-agents/atomic_agents/agents/atomic_agent.py
           set +e
