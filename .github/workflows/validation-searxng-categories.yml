@@ -260,7 +260,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SEARXNG_DISABLE_ETC_SETTINGS: '1'
-      SEARXNG_SOURCE: ${{ runner.temp }}/searxng
+      SEARXNG_SOURCE: ${{ github.workspace }}/.validation/searxng
       ATOMIC_SOURCE: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
