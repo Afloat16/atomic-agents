@@ -252,19 +252,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dspy: ['2.5.0', '3.0.4']
+        include:
+          - dspy: '2.5.0'
+            package: 'dspy-ai==2.5.0'
+          - dspy: '3.0.4'
+            package: 'dspy==3.0.4'
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 3
+          fetch-depth: 4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - uses: astral-sh/setup-uv@v4
-      - name: Install the declared DSPy dependency
+      - name: Install the DSPy distribution for this version
         run: |
           uv sync
-          uv pip install dspy==${{ matrix.dspy }}
+          uv pip install ${{ matrix.package }}
       - name: Confirm the unchanged handoff loses actual fields
         run: |
           python - <<'PY'
