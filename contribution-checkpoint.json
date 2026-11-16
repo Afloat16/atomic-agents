@@ -1116,6 +1116,71 @@
     "url": "https://github.com/Eigenwise/atomic-agents/pull/455",
     "state": "open",
     "merged": false,
-    "maintainer_can_modify": false
+    "maintainer_can_modify": false,
+    "official_ci": {
+      "id": 43907300103,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43907300103"
+    }
+  },
+  "batch16": {
+    "batch": 16,
+    "repository": "Eigenwise/atomic-agents",
+    "status": "published",
+    "base": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "branch": "fix/otel-native-suppression-20261116",
+    "validation_branch": "validation/otel-native-suppression-20261116",
+    "dedupe": "audit/atomic_suppression_history.json.gz",
+    "dedupe_commits": 57,
+    "dedupe_full_source_versions": 26,
+    "local_tests": {
+      "before": "9 failed, 8 passed",
+      "after": "17 passed",
+      "core": "1382 passed, 14 skipped",
+      "native_exporter_before": [
+        "execute_tool Input",
+        "outer"
+      ],
+      "native_exporter_after": [
+        "outer"
+      ],
+      "black": "253 files unchanged, official four-directory command",
+      "flake8": "pass, official four-directory command"
+    },
+    "spec": "https://opentelemetry-python.readthedocs.io/en/latest/_modules/opentelemetry/sdk/trace/export.html",
+    "validation_head": "0bf032754a4b163a518b21af7e780b15925bfafe",
+    "validation_tree": "1b100002150bfacfcc339c0160fb9a08b617ee31",
+    "head": "c6c1a466ac0ea461afd5285198e5e7d1c8db7f73",
+    "tree": "f07fec2958211cfe11ca5841ae5d11d000584e3c",
+    "title": "Honor OpenTelemetry SDK instrumentation suppression",
+    "body": "## Problem\n\nAtomic Agents checks only the legacy string `suppress_instrumentation`. OpenTelemetry's SDK uses its generated context key when exporting spans, so an instrumented tool invoked inside an exporter still creates another span. The same mismatch affects agent calls, Instructor attempt accounting, and opt-in message capture.\n\nA real `SimpleSpanProcessor` reproduces the problem: exporting one outer span invokes a local tool while the SDK suppression flag is true, yet the tool creates a second exported span.\n\n## Changes\n\nRecognize the SDK key as well as the existing legacy flag across agent/tool tracing, attempt hooks, and message capture. Suppressed operations still execute normally. Keep message-content access behind the suppression check, and resume normal tracing when the context ends.\n\nThis matches the SDK's [exporter suppression context](https://opentelemetry-python.readthedocs.io/en/latest/_modules/opentelemetry/sdk/trace/export.html).\n\n## Validation\n\n- OpenTelemetry API/SDK **1.30.0 and 1.38.0**: **9 failures and 8 passing controls** against unchanged main, then **17 passing tests** on each version.\n- Coverage includes a real SDK exporter invoking a real tool, sync/async agent calls, both streaming paths, threaded tools, delayed response/error hooks, message access, and legacy-key compatibility.\n- Complete core suite: **1,382 passed, 14 skipped** with both locked dependencies and the lowest allowed direct dependencies.\n- Black, Flake8, constructor typing, fresh-wheel imports and native tracing checks pass.\n- [Five-job validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43908869835).\n\nNo new runtime dependency is added.",
+    "validation_run": {
+      "id": 43908869835,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Afloat16/atomic-agents/actions/runs/43908869835"
+    },
+    "validation_tests": {
+      "native_versions": [
+        "1.30.0",
+        "1.38.0"
+      ],
+      "native_before": "9 failed, 8 passed on each",
+      "native_after": "17 passed on each",
+      "core_locked": "1382 passed, 14 skipped",
+      "core_lowest": "1382 passed, 14 skipped"
+    },
+    "number": 456,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/456",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false,
+    "official_ci": {
+      "id": 43909383365,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43909383365"
+    }
   }
 }
