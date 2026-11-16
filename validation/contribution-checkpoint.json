@@ -351,7 +351,7 @@
     "validation_head": "5608c24c15e645b21a810125970b228735acb442",
     "validation_tree": "7bc1eb4f01a0e8913f8407927dc33b3429398884",
     "validation_branch": "validation/dspy-nullable-unions-20261116",
-    "status": "validating",
+    "status": "published",
     "local_tests": {
       "before_3_0_4": "15 failed, 2 passed",
       "before_legacy_2_5_0": "16 failed, 1 passed",
@@ -366,6 +366,46 @@
       "source_revisions": 3,
       "distinct_converter_implementations": 1,
       "equivalent_fixes": 0
-    }
+    },
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43890073537",
+    "validation_jobs": [
+      {
+        "id": 133378562563,
+        "name": "Fresh install imports every subpackage",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133378562713,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133378562794,
+        "name": "quality",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133378562900,
+        "name": "Native DSPy 3.0.4 unions before and after",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 133378562935,
+        "name": "Native DSPy 2.5.0 unions before and after",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "body": "## Problem\n\nThe schema bridge changes the meaning of nullable and union annotations. `Optional[int]` falls back to `str`, so a numeric answer becomes a string and a null answer becomes text. The `int | None` spelling loses its null branch, while mixed unions can fail with DSPy's older signature builder. `run_validated()` then rejects an otherwise valid nullable response.\n\n## Change\n\nRecognize both `typing.Union` and `types.UnionType`, preserving every member, including `None`. Use a `typing.Union` annotation for compatibility with the older signature builder. Existing recursive list conversion also preserves nullable list elements.\n\n## Validation\n\n- Native **DSPy 3.0.4**: unchanged source fails **15** regressions and passes **2** controls; the fix passes all **17**.\n- Historical **DSPy 2.5.0** (`dspy-ai`): unchanged source fails **16** regressions and passes **1** control; the fix passes all **17**.\n- Tests use real DSPy signatures, predictors and the typed chat adapter with a deterministic local LM. They check advertised schemas and returned Python values for both union spellings, nulls, numbers, booleans, strings, nullable lists, nested optional values and literals, including `run_validated()`.\n- Full core suite: **1,373 passed, 14 skipped** with both locked and lowest direct dependencies. Black, Flake8, constructor typing and fresh-install checks pass.\n\nThe [five-job validation run](https://github.com/Afloat16/atomic-agents/actions/runs/43890073537) records the native before/after tests and the repository's existing checks.",
+    "prefilled_url": "https://github.com/Eigenwise/atomic-agents/compare/main...Afloat16:fix/dspy-nullable-union-types-20261116?expand=1&title=Preserve%20nullable%20and%20union%20fields%20in%20DSPy%20signatures&body=%23%23%20Problem%0A%0AThe%20schema%20bridge%20changes%20the%20meaning%20of%20nullable%20and%20union%20annotations.%20%60Optional%5Bint%5D%60%20falls%20back%20to%20%60str%60%2C%20so%20a%20numeric%20answer%20becomes%20a%20string%20and%20a%20null%20answer%20becomes%20text.%20The%20%60int%20%7C%20None%60%20spelling%20loses%20its%20null%20branch%2C%20while%20mixed%20unions%20can%20fail%20with%20DSPy's%20older%20signature%20builder.%20%60run_validated()%60%20then%20rejects%20an%20otherwise%20valid%20nullable%20response.%0A%0A%23%23%20Change%0A%0ARecognize%20both%20%60typing.Union%60%20and%20%60types.UnionType%60%2C%20preserving%20every%20member%2C%20including%20%60None%60.%20Use%20a%20%60typing.Union%60%20annotation%20for%20compatibility%20with%20the%20older%20signature%20builder.%20Existing%20recursive%20list%20conversion%20also%20preserves%20nullable%20list%20elements.%0A%0A%23%23%20Validation%0A%0A-%20Native%20**DSPy%203.0.4**%3A%20unchanged%20source%20fails%20**15**%20regressions%20and%20passes%20**2**%20controls%3B%20the%20fix%20passes%20all%20**17**.%0A-%20Historical%20**DSPy%202.5.0**%20(%60dspy-ai%60)%3A%20unchanged%20source%20fails%20**16**%20regressions%20and%20passes%20**1**%20control%3B%20the%20fix%20passes%20all%20**17**.%0A-%20Tests%20use%20real%20DSPy%20signatures%2C%20predictors%20and%20the%20typed%20chat%20adapter%20with%20a%20deterministic%20local%20LM.%20They%20check%20advertised%20schemas%20and%20returned%20Python%20values%20for%20both%20union%20spellings%2C%20nulls%2C%20numbers%2C%20booleans%2C%20strings%2C%20nullable%20lists%2C%20nested%20optional%20values%20and%20literals%2C%20including%20%60run_validated()%60.%0A-%20Full%20core%20suite%3A%20**1%2C373%20passed%2C%2014%20skipped**%20with%20both%20locked%20and%20lowest%20direct%20dependencies.%20Black%2C%20Flake8%2C%20constructor%20typing%20and%20fresh-install%20checks%20pass.%0A%0AThe%20%5Bfive-job%20validation%20run%5D(https%3A%2F%2Fgithub.com%2FAfloat16%2Fatomic-agents%2Factions%2Fruns%2F43890073537)%20records%20the%20native%20before%2Fafter%20tests%20and%20the%20repository's%20existing%20checks.",
+    "number": 445,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/445",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false
   }
 }
