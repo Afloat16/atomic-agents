@@ -250,7 +250,7 @@ jobs:
         run: lowest-venv/bin/python -c "import importlib.metadata as m; print(' '.join(p + '=' + m.version(p) for p in ['instructor', 'openai', 'pydantic', 'mcp', 'litellm']))"
 
       - name: Verify all SearXNG tool copies
-        run: lowest-venv/bin/python -m pytest atomic-forge/tools/searxng_search/tests -q
+        run: lowest-venv/bin/python -m pytest atomic-forge/tools/searxng_search/tests -q -o asyncio_default_fixture_loop_scope=function
 
       - name: Run Tests
         run: lowest-venv/bin/python -m pytest atomic-agents
