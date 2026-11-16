@@ -1225,6 +1225,84 @@
     "full_suite": "1385 passed, 14 skipped",
     "head_body_verified": true,
     "validation_head": "53b2a05f56dbcb2e83a2f8b8a8aeead03ad41a02",
-    "validation_tree": "5770f6c354fefcbee793ec32b4dc30dbe67972c7"
+    "validation_tree": "5770f6c354fefcbee793ec32b4dc30dbe67972c7",
+    "official_ci": [
+      {
+        "id": 43912545632,
+        "url": "https://github.com/Eigenwise/atomic-agents/actions/runs/43912545632",
+        "name": "Code Quality & Tests",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "batch18": {
+    "batch": 18,
+    "repository": "Eigenwise/atomic-agents",
+    "status": "published",
+    "base": "6a5e19e4a09ac30f96d75c5937bb44d0643b9f2f",
+    "branch": "fix/scraper-empty-candidates-20261116",
+    "validation_branch": "validation/scraper-empty-candidates-20261116",
+    "title": "Skip empty article candidates without dropping media",
+    "dedupe": "audit/atomic_scraper_candidate_history.json.gz",
+    "dedupe_commits": 43,
+    "dedupe_full_source_versions": 25,
+    "template": "https://git.drupalcode.org/project/bootstrap/-/raw/8.x-3.x/templates/system/page.html.twig",
+    "local_tests": {
+      "before": "12 failed, 24 passed",
+      "before_with_442": "12 failed, 24 passed",
+      "after_complete_scraper_suite": "53 passed",
+      "transport": "real Requests HTTP requests to local ThreadingHTTPServer; native BeautifulSoup/readability/Markdownify",
+      "dependencies": "beautifulsoup4 4.14.2, markdownify 0.14.1, readability-lxml 0.8.4.1, requests 2.34.2, lxml 5.4.0",
+      "full_core": "1373 passed, 14 skipped",
+      "black": "254 files unchanged",
+      "flake8": "passed"
+    },
+    "difference_from_442": "442 prevents deletion of article headers/footers; it does not change candidate selection and still fails the same 12 regressions.",
+    "validation_head": "d13960fdb4a63c0774312ab765f4a3a87c864475",
+    "validation_tree": "1bea1f239da8439b5d647fd02d2b562046118aa2",
+    "head": "bb05ac605f671149ebb3d35c1fb4f807402e45f8",
+    "tree": "baa491c288d0864a0faa57eecd559a6db06ff07e",
+    "number": 458,
+    "url": "https://github.com/Eigenwise/atomic-agents/pull/458",
+    "body": "## Problem\n\nBoth webpage scrapers select the first matching content element even when it is empty. An accessibility target such as `<a id=\"main-content\"></a>` can therefore win over the article and make a successful scrape return only a newline. Empty placeholders also hide later candidates of the same kind.\n\nThis layout occurs in the [Drupal Bootstrap page template](https://git.drupalcode.org/project/bootstrap/-/blob/8.x-3.x/templates/system/page.html.twig), which places the empty target before the page content inside a `div.main-container`.\n\n## Change\n\nContinue through candidates in the existing priority order until one contains text or media. Preserve image-only and other media-only candidates, including media elements that carry the matching ID themselves. Keep the body fallback when every candidate is empty.\n\nApply the same fix to the Forge scraper and the deep-research copy. This is independent of #442's header/footer preservation: that patch still fails the same 12 new article-selection regressions.\n\n## Validation\n\n- Real Requests HTTP calls, BeautifulSoup, readability, and Markdownify exercise both public scraper entry points.\n- On unchanged main, and separately with #442 applied: **12 failed, 24 passed**. The failures cover empty skip targets, whitespace/comments, later ID/class/main/article matches, and the body fallback.\n- After the change: **53 passed**, including the existing scraper suite. Controls retain candidate priority and image/audio/video/iframe/object/embed/SVG/canvas selection.\n- Repeated with locked parser versions and their minimum compatible versions: **53 passed** in both environments.\n- Full core suite with locked and minimum direct dependencies: **1,373 passed, 14 skipped** in each environment.\n- Black, Flake8, constructor typing, and clean-wheel import checks passed.\n\nValidation run: https://github.com/Afloat16/atomic-agents/actions/runs/43917494760",
+    "state": "open",
+    "merged": false,
+    "maintainer_can_modify": false,
+    "validation_run": "https://github.com/Afloat16/atomic-agents/actions/runs/43917494760",
+    "validation_jobs": [
+      {
+        "id": 133475482084,
+        "name": "Fresh install imports every subpackage",
+        "conclusion": "success"
+      },
+      {
+        "id": 133475482226,
+        "name": "Tests on the lowest allowed version of every direct dependency",
+        "conclusion": "success"
+      },
+      {
+        "id": 133475482369,
+        "name": "quality",
+        "conclusion": "success"
+      },
+      {
+        "id": 133475482431,
+        "name": "Real HTTP and parsers (minimum)",
+        "conclusion": "success"
+      },
+      {
+        "id": 133475482629,
+        "name": "Real HTTP and parsers (locked)",
+        "conclusion": "success"
+      }
+    ],
+    "full_suite": "1373 passed, 14 skipped",
+    "head_body_verified": true
+  },
+  "extra_media_deferred": {
+    "reason": "Same field traversal omission as pre-existing open PR414; no new PR or count",
+    "commits": 125,
+    "source_versions": 62
   }
 }
