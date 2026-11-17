@@ -64,11 +64,21 @@ class WikipediaArticle(BaseIOSchema):
     thumbnail_url: Optional[str] = Field(None, description="URL of a thumbnail image for the article, when available.")
 
 
+class WikipediaSearchFailure(BaseIOSchema):
+    """A query that failed while other queries returned articles."""
+
+    query: str = Field(..., description="The query that failed.")
+    error: str = Field(..., description="Why the query failed, including the API error code when available.")
+
+
 class WikipediaSearchToolOutputSchema(BaseIOSchema):
     """Output of the Wikipedia search tool."""
 
     results: List[WikipediaArticle] = Field(
         ..., description="Articles returned across all queries, in best-match order per query."
+    )
+    failures: List[WikipediaSearchFailure] = Field(
+        default_factory=list, description="Queries that failed while others returned articles, with the reason."
     )
 
 
@@ -100,6 +110,13 @@ class WikipediaSearchTool(BaseTool[WikipediaSearchToolInputSchema, WikipediaSear
     def _api_base(language: str) -> str:
         return f"https://{language}.wikipedia.org"
 
+    @staticmethod
+    def _raise_api_error(data: dict, operation: str) -> None:
+        # MediaWiki's default error format uses an error object even with HTTP 200.
+        error = data.get("error")
+        if isinstance(error, dict):
+            raise RuntimeError(f"Wikipedia {operation}: {error.get('code', 'unknown')} {error.get('info', '')}".rstrip())
+
     async def _search_titles(self, session: aiohttp.ClientSession, query: str, language: str, limit: int) -> List[str]:
         """Call MediaWiki search API and return a list of matching article titles."""
         params = {
@@ -114,6 +131,7 @@ class WikipediaSearchTool(BaseTool[WikipediaSearchToolInputSchema, WikipediaSear
             if resp.status != 200:
                 raise Exception(f"Wikipedia search failed for '{query}': {resp.status} {resp.reason}")
             data = await resp.json()
+        self._raise_api_error(data, f"search failed for '{query}'")
         return [hit["title"] for hit in data.get("query", {}).get("search", [])]
 
     async def _fetch_summary(self, session: aiohttp.ClientSession, title: str, language: str) -> Optional[dict]:
@@ -141,6 +159,7 @@ class WikipediaSearchTool(BaseTool[WikipediaSearchToolInputSchema, WikipediaSear
             if resp.status != 200:
                 raise Exception(f"Wikipedia extract failed for '{title}': {resp.status} {resp.reason}")
             data = await resp.json()
+        self._raise_api_error(data, f"extract failed for '{title}'")
         pages = data.get("query", {}).get("pages", {})
         for page in pages.values():
             extract = page.get("extract")
@@ -200,12 +219,16 @@ class WikipediaSearchTool(BaseTool[WikipediaSearchToolInputSchema, WikipediaSear
             grouped = await asyncio.gather(*tasks, return_exceptions=True)
 
         results: List[WikipediaArticle] = []
+        failures: List[WikipediaSearchFailure] = []
         for query, group in zip(params.queries, grouped):
             if isinstance(group, Exception):
                 logger.warning("Query '%s' failed: %s", query, group)
+                failures.append(WikipediaSearchFailure(query=query, error=str(group)))
                 continue
             results.extend(group)
-        return WikipediaSearchToolOutputSchema(results=results)
+        if failures and not results:
+            raise RuntimeError(failures[0].error)
+        return WikipediaSearchToolOutputSchema(results=results, failures=failures)
 
     def run(self, params: WikipediaSearchToolInputSchema) -> WikipediaSearchToolOutputSchema:
         with ThreadPoolExecutor() as executor:

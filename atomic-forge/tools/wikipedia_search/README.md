@@ -23,6 +23,13 @@ Searches Wikipedia and returns matching articles with titles, URLs, summaries, a
 
 ### Output Schema
 - `results`: a list of `WikipediaArticle` items. Each item has `query`, `title`, `page_url`, `summary`, `description`, `full_text` (optional), and `thumbnail_url` (optional).
+- `failures`: unsuccessful queries and their error messages when other queries returned articles. Empty when every query succeeded.
+
+MediaWiki can return a fatal API error with HTTP status 200, including the documented `nosrsearch` error for an empty query. These responses are reported as failures, with their error code and message, rather than treated as empty search matches. If at least one query failed and none returned articles, the tool raises `RuntimeError`. A successful search with no matches still returns empty results.
+
+Nonfatal MediaWiki warnings do not discard valid search results. If an optional full-text request fails, the article and summary remain available with `full_text` unset and the error logged.
+
+See the [MediaWiki error format](https://www.mediawiki.org/wiki/API:Errors_and_warnings) and [search errors](https://www.mediawiki.org/wiki/API:Search#Possible_errors).
 
 ## Usage
 
