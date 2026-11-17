@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Union
 import asyncio
 import contextvars
 from concurrent.futures import ThreadPoolExecutor
@@ -34,10 +34,18 @@ class BoChaSearchResultItemSchema(BaseIOSchema):
     query: Optional[str] = Field(None, description="The query used to obtain this search result")
 
 
+class BoChaSearchFailure(BaseIOSchema):
+    """A query that could not be completed by BoCha."""
+
+    query: str = Field(..., description="The query that failed.")
+    error: str = Field(..., description="The reason the query failed.")
+
+
 class BoChaSearchToolOutputSchema(BaseIOSchema):
     """This schema represents the output of the BoCha search tool."""
 
     results: List[BoChaSearchResultItemSchema] = Field(..., description="List of search result items")
+    failures: List[BoChaSearchFailure] = Field(default_factory=list, description="Queries that could not be completed.")
 
 
 ##############
@@ -115,19 +123,35 @@ class BoChaSearchTool(BaseTool[BoChaSearchToolInputSchema, BoChaSearchToolOutput
 
             return {"results": results}
 
+    async def _query_outcome(
+        self, session: aiohttp.ClientSession, query: str, count: Optional[int]
+    ) -> Union[dict, BoChaSearchFailure]:
+        try:
+            return await self._fetch_search_results(session, query, count)
+        except Exception as error:
+            # Keep native exceptions and their authenticated request metadata
+            # out of the frame that reports an unsuccessful batch.
+            detail = f"Query '{query}' failed: {error}"
+            if self.api_key:
+                detail = detail.replace(self.api_key, "[redacted]")
+            return BoChaSearchFailure(query=query, error=detail)
+
     async def run_async(self, params: BoChaSearchToolInputSchema, count: Optional[int] = None) -> BoChaSearchToolOutputSchema:
         async with aiohttp.ClientSession() as session:
             # Fetch results for all queries
-            tasks = [self._fetch_search_results(session, query, count) for query in params.queries]
+            tasks = [self._query_outcome(session, query, count) for query in params.queries]
             raw_responses = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Process results for each query
         processed_results = []
-        for query, response in zip(params.queries, raw_responses):
-            if isinstance(response, Exception):
-                # Log the failure, skip or handle as needed
-                logging.warning(f"Query '{query}' failed: {response}")
+        failures: List[BoChaSearchFailure] = []
+        for response in raw_responses:
+            if isinstance(response, BoChaSearchFailure):
+                failures.append(response)
+                logging.warning("%s", response.error)
                 continue
+            if isinstance(response, BaseException):
+                raise response
             query_results = response["results"]
             query_processed = []
             for result in query_results:
@@ -147,7 +171,9 @@ class BoChaSearchTool(BaseTool[BoChaSearchToolInputSchema, BoChaSearchToolOutput
             query_processed = query_processed[: count or self.count]
             processed_results.extend(query_processed)
 
-        return BoChaSearchToolOutputSchema(results=processed_results)
+        if failures and not processed_results:
+            raise RuntimeError(failures[0].error)
+        return BoChaSearchToolOutputSchema(results=processed_results, failures=failures)
 
     def run(self, params: BoChaSearchToolInputSchema, count: Optional[int] = None) -> BoChaSearchToolOutputSchema:
         """

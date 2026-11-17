@@ -149,7 +149,7 @@ async def test_bocha_search_tool_no_results(mock_aiohttp_session):
 
 @pytest.mark.asyncio
 async def test_bocha_search_tool_http_error_handled(mock_aiohttp_session, caplog):
-    """Test that HTTP errors are logged and skipped, not raised"""
+    """An unsuccessful batch must not look like a successful empty search."""
     mock_api_key = "KEY"
     mock_query = "error query"
 
@@ -163,10 +163,9 @@ async def test_bocha_search_tool_http_error_handled(mock_aiohttp_session, caplog
     input_schema = BoChaSearchToolInputSchema(queries=[mock_query])
 
     with caplog.at_level("WARNING"):
-        result = await tool.run_async(input_schema)
+        with pytest.raises(RuntimeError, match="500"):
+            await tool.run_async(input_schema)
 
-    # The result should be empty because the query failed
-    assert len(result.results) == 0
     # Check that a warning was logged
     assert any("Query 'error query' failed" in rec.message for rec in caplog.records)
 

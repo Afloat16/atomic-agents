@@ -38,6 +38,9 @@ config = BoChaSearchToolConfig(
 
 ### Output Schema
 - `results` (List[BoChaSearchResultItemSchema]): List of search result items.
+- `failures` (List[BoChaSearchFailure]): Unsuccessful queries, each with `query` and `error` fields. Successful query results remain available alongside these failures.
+
+If any query fails and the batch has no results, `run` and `run_async` raise `RuntimeError`. Authentication, rate-limit and service errors therefore cannot appear as successful searches with no matches. A successful search with no matches still returns empty `results` and `failures` lists.
 
 Each `BoChaSearchResultItemSchema` contains:
 - `name` (str): The title of the search result.
