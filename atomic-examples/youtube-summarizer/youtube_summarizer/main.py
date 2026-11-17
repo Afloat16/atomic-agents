@@ -1,5 +1,4 @@
 import os
-from dotenv import load_dotenv
 from rich.console import Console
 
 from youtube_summarizer.tools.youtube_transcript_scraper import (
@@ -13,8 +12,6 @@ from youtube_summarizer.agent import (
     youtube_knowledge_extraction_agent,
     transcript_provider,
 )
-
-load_dotenv()
 
 # Initialize a Rich Console for pretty console outputs
 console = Console()

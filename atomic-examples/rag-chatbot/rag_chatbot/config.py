@@ -1,6 +1,9 @@
 import os
 from dataclasses import dataclass
 from enum import Enum
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class VectorDBType(Enum):

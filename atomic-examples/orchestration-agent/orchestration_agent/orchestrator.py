@@ -19,6 +19,9 @@ from orchestration_agent.tools.calculator import (
 
 import instructor
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 ########################
@@ -112,12 +115,9 @@ def execute_tool(
 #################
 if __name__ == "__main__":
     import os
-    from dotenv import load_dotenv
     from rich.console import Console
     from rich.panel import Panel
     from rich.syntax import Syntax
-
-    load_dotenv()
 
     # Set up the OpenAI client
     client = instructor.from_openai(openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY")))

@@ -2,9 +2,12 @@ import instructor
 import openai
 from pydantic import Field
 from typing import List, Optional
+from dotenv import load_dotenv
 
 from atomic_agents import AtomicAgent, AgentConfig, BaseIOSchema
 from atomic_agents.context import BaseDynamicContextProvider, SystemPromptGenerator
+
+load_dotenv()
 
 
 class YtTranscriptProvider(BaseDynamicContextProvider):
