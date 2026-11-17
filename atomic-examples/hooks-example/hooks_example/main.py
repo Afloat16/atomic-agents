@@ -269,7 +269,7 @@ def demonstrate_interactive_mode():
             console.print(f"[bold magenta]Reasoning:[/bold magenta] {response.reasoning}")
             console.print(f"[dim]Response time: {response_time:.2f}s[/dim]")
 
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
             console.print("\nExiting on user interrupt...")
             break
         except Exception as e:
