@@ -4,6 +4,13 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
+from dotenv import load_dotenv
+
+
+# Load the example's documented .env before ChatConfig reads the environment.
+# Exported values retain precedence over settings in the file.
+load_dotenv()
+
 
 def get_api_key() -> str:
     api_key = os.getenv("OPENAI_API_KEY")
