@@ -3,7 +3,7 @@ import contextvars
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Union
 
 import aiohttp
 from pydantic import Field
@@ -51,10 +51,18 @@ class SerplySearchResultItem(BaseIOSchema):
     citations: Optional[int] = Field(None, description="Citation count (scholar only).")
 
 
+class SerplySearchFailure(BaseIOSchema):
+    """A query that could not be completed by Serply."""
+
+    query: str = Field(..., description="The query that failed.")
+    error: str = Field(..., description="The reason the query failed.")
+
+
 class SerplySearchToolOutputSchema(BaseIOSchema):
     """Output of the Serply search tool."""
 
     results: List[SerplySearchResultItem] = Field(..., description="Matching results across all queries.")
+    failures: List[SerplySearchFailure] = Field(default_factory=list, description="Queries that could not be completed.")
 
 
 #################
@@ -135,25 +143,43 @@ class SerplySearchTool(BaseTool[SerplySearchToolInputSchema, SerplySearchToolOut
         items = [self._to_item(hit, query) for hit in hits if hit.get("title") and hit.get("link")]
         return items[:max_results]
 
+    async def _query_outcome(
+        self, session: aiohttp.ClientSession, query: str, params: SerplySearchToolInputSchema
+    ) -> Union[List[SerplySearchResultItem], SerplySearchFailure]:
+        try:
+            return await self._fetch(session, query, params.search_type, params.max_results_per_query)
+        except Exception as error:
+            # Native client exceptions can retain authenticated request headers.
+            # Keep only a sanitized failure before aggregating or raising it.
+            detail = f"Serply query '{query}' failed: {error}".replace(self.api_key, "[redacted]")
+            return SerplySearchFailure(query=query, error=detail)
+
     async def run_async(self, params: SerplySearchToolInputSchema) -> SerplySearchToolOutputSchema:
         if not self.api_key:
             raise ValueError(
                 "Serply API key is missing. Set SerplySearchToolConfig.api_key or the SERPLY_API_KEY environment variable."
             )
 
-        headers = {"X-Api-Key": self.api_key, "User-Agent": self.user_agent, "Accept": "application/json"}
         timeout = aiohttp.ClientTimeout(total=self.timeout)
-        async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
-            tasks = [self._fetch(session, q, params.search_type, params.max_results_per_query) for q in params.queries]
+        async with aiohttp.ClientSession(
+            headers={"X-Api-Key": self.api_key, "User-Agent": self.user_agent, "Accept": "application/json"}, timeout=timeout
+        ) as session:
+            tasks = [self._query_outcome(session, q, params) for q in params.queries]
             grouped = await asyncio.gather(*tasks, return_exceptions=True)
 
         results: List[SerplySearchResultItem] = []
-        for query, group in zip(params.queries, grouped):
-            if isinstance(group, Exception):
-                logger.warning("Serply query '%s' failed: %s", query, group)
+        failures: List[SerplySearchFailure] = []
+        for group in grouped:
+            if isinstance(group, SerplySearchFailure):
+                failures.append(group)
+                logger.warning("%s", group.error)
                 continue
+            if isinstance(group, BaseException):
+                raise group
             results.extend(group)
-        return SerplySearchToolOutputSchema(results=results)
+        if failures and not results:
+            raise RuntimeError(failures[0].error)
+        return SerplySearchToolOutputSchema(results=results, failures=failures)
 
     def run(self, params: SerplySearchToolInputSchema) -> SerplySearchToolOutputSchema:
         with ThreadPoolExecutor() as executor:

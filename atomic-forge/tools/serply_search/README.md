@@ -32,6 +32,8 @@ Searches Google web results, Google News, or Google Scholar through the [Serply]
 ### Output Schema
 A list of `SerplySearchResultItem` items. Each has `query`, `title`, `url`, and optional `description`, `position` (web search), `published` and `source` (news), `authors` and `citations` (scholar).
 
+`failures` contains a `query` and `error` for each unsuccessful query, while results from successful queries remain available. If any query fails and the batch has no results, the tool raises `RuntimeError` instead of returning an empty search result. A successful search with no matches still returns empty `results` and `failures` lists. This applies to web, news, and scholar searches through both `run` and `run_async`.
+
 ## Usage
 
 ```python

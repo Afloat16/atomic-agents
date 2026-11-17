@@ -58,12 +58,12 @@ def test_search_does_not_follow_redirects(serply_http, status, mode, caplog):
     tool = SerplySearchTool(SerplySearchToolConfig(api_key="test-only-key", base_url=origin))
     params = SerplySearchToolInputSchema(queries=["test"])
 
-    result = tool.run(params) if mode == "sync" else asyncio.run(tool.run_async(params))
+    with pytest.raises(RuntimeError, match=str(status)):
+        tool.run(params) if mode == "sync" else asyncio.run(tool.run_async(params))
 
     assert len(calls) == 1
     assert calls[0][0].startswith("/search/")
     assert calls[0][1] == "test-only-key"
-    assert result.results == []
     assert str(status) in caplog.text
     assert "test-only-key" not in caplog.text
 
