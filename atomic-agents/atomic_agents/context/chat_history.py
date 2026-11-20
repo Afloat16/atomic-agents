@@ -393,7 +393,7 @@ class ChatHistory(BaseChatHistory):
         """
         if isinstance(obj, (Image, PDF)) and isinstance(obj.source, str):
             # Check if the string looks like a file path (not a URL or base64 data)
-            if not obj.source.startswith(("http://", "https://", "data:")):
+            if not obj.source.startswith(("http://", "https://", "data:", "gs://", "s3://")):
                 obj.source = Path(obj.source)
         elif isinstance(obj, (list, tuple)):
             # Process each item in the sequence
