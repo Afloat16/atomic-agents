@@ -5,6 +5,17 @@ from typing import Any, get_args, get_origin
 from atomic_agents.base.base_io_schema import BaseIOSchema
 
 
+def _substitute_parameters(argument: Any, bindings: dict[Any, Any]) -> Any:
+    """Bind both bare parameters and parameters nested inside generic types."""
+    if argument in bindings:
+        return bindings[argument]
+    # Pydantic keeps remaining parameters in its own metadata, not __parameters__.
+    metadata = getattr(argument, "__pydantic_generic_metadata__", None)
+    parameters = metadata["parameters"] if metadata else getattr(argument, "__parameters__", ())
+    resolved = tuple(bindings.get(parameter, parameter) for parameter in parameters)
+    return argument[resolved] if resolved != parameters else argument
+
+
 def resolve_schema_types(instance: object, schema_base: type) -> tuple[type[BaseIOSchema], type[BaseIOSchema]] | None:
     """Find the first schema binding in left-to-right declared-base order.
 
@@ -14,7 +25,7 @@ def resolve_schema_types(instance: object, schema_base: type) -> tuple[type[Base
 
     def resolve(base: Any, bindings: dict[Any, Any]) -> tuple[Any, Any] | None:
         origin = get_origin(base) or base
-        arguments = tuple(bindings.get(argument, argument) for argument in get_args(base))
+        arguments = tuple(_substitute_parameters(argument, bindings) for argument in get_args(base))
         if origin is schema_base:
             return (arguments[0], arguments[1]) if len(arguments) == 2 else None
 
